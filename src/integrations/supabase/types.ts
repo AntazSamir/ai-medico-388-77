@@ -14,7 +14,275 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      family_members: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          relationship: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          relationship: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          relationship?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      medical_reports: {
+        Row: {
+          created_at: string | null
+          doctor_name: string | null
+          extracted_data: Json | null
+          family_member_id: string | null
+          hospital_name: string | null
+          id: string
+          image_url: string | null
+          patient_name: string | null
+          report_date: string | null
+          report_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          doctor_name?: string | null
+          extracted_data?: Json | null
+          family_member_id?: string | null
+          hospital_name?: string | null
+          id?: string
+          image_url?: string | null
+          patient_name?: string | null
+          report_date?: string | null
+          report_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          doctor_name?: string | null
+          extracted_data?: Json | null
+          family_member_id?: string | null
+          hospital_name?: string | null
+          id?: string
+          image_url?: string | null
+          patient_name?: string | null
+          report_date?: string | null
+          report_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_reports_family_member_id_fkey"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicines: {
+        Row: {
+          created_at: string | null
+          dosage_afternoon: number | null
+          dosage_morning: number | null
+          dosage_night: number | null
+          dosage_noon: number | null
+          duration: string | null
+          frequency: string | null
+          id: string
+          instructions: string | null
+          medication_name: string
+          prescription_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          dosage_afternoon?: number | null
+          dosage_morning?: number | null
+          dosage_night?: number | null
+          dosage_noon?: number | null
+          duration?: string | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          medication_name: string
+          prescription_id: string
+        }
+        Update: {
+          created_at?: string | null
+          dosage_afternoon?: number | null
+          dosage_morning?: number | null
+          dosage_night?: number | null
+          dosage_noon?: number | null
+          duration?: string | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          medication_name?: string
+          prescription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicines_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string | null
+          doctor_name: string | null
+          extracted_data: Json | null
+          family_member_id: string | null
+          id: string
+          image_url: string | null
+          notes: string | null
+          prescription_date: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          doctor_name?: string | null
+          extracted_data?: Json | null
+          family_member_id?: string | null
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          prescription_date?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          doctor_name?: string | null
+          extracted_data?: Json | null
+          family_member_id?: string | null
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          prescription_date?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_family_member_id_fkey"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      symptoms: {
+        Row: {
+          analysis_result: Json | null
+          analyzed_at: string | null
+          created_at: string | null
+          description: string | null
+          family_member_id: string | null
+          id: string
+          severity: number | null
+          symptoms: string[]
+          user_id: string
+        }
+        Insert: {
+          analysis_result?: Json | null
+          analyzed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          family_member_id?: string | null
+          id?: string
+          severity?: number | null
+          symptoms: string[]
+          user_id: string
+        }
+        Update: {
+          analysis_result?: Json | null
+          analyzed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          family_member_id?: string | null
+          id?: string
+          severity?: number | null
+          symptoms?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "symptoms_family_member_id_fkey"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
