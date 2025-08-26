@@ -1,0 +1,97 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+    
+    /* Soft blue palette */
+    --soft-blue: 216 87% 92%;
+    --soft-blue-foreground: 216 100% 20%;
+    --soft-blue-hover: 216 87% 88%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Glass card effect */
+.glass-card {
+  @apply bg-white bg-opacity-80 backdrop-blur-lg border border-gray-100 rounded-xl shadow-lg;
+}
+
+/* Smooth scrolling and better mobile experience */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Better focus styles */
+:focus {
+  @apply outline-none ring-2 ring-medical-500 ring-offset-2 ring-offset-white;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-medical-500 rounded-full;
+}
+
+/* Enhanced button hover animations */
+.btn-press {
+  transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+  transform-origin: center;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn-press:hover {
+  box-shadow: 0 8px 20px -6px hsl(var(--primary) / 0.3);
+  filter: brightness(1.05);
+}
+
+.btn-press:active {
+  filter: brightness(0.95);
+  transition: all 80ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ease-smooth {
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
