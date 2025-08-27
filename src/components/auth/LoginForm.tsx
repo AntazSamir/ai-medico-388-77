@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, Brain, Shield, ActivitySquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -16,16 +17,32 @@ export default function LoginForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (email && password) {
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      navigate("/profile");
-    } else {
+
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        });
+        navigate("/dashboard");
+      }
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
     }

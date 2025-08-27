@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
+import Navigation from "@/components/Navigation";
 import { Stethoscope, AlertTriangle, Clock, ArrowLeft, User, CheckCircle } from "lucide-react";
 import { analyzeSymptoms } from "@/utils/symptomAnalyzer";
 
@@ -86,6 +87,7 @@ export default function Symptoms() {
 
   return (
     <PageTransition>
+      <Navigation />
       <div className="min-h-screen p-4 bg-gradient-to-br from-medical-50 to-medical-100">
         <div className="max-w-4xl mx-auto space-y-8 pt-8">
           <div className="flex justify-between items-center mb-4">

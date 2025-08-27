@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
+import Navigation from "@/components/Navigation";
 import {
   Dialog,
   DialogContent,
@@ -329,6 +330,7 @@ Patient Information:
 
   return (
     <PageTransition>
+      <Navigation />
       <div className="min-h-screen p-4 bg-gradient-to-br from-medical-50 to-medical-100">
         <div className="max-w-6xl mx-auto space-y-6 pt-4">
           {/* Header */}
