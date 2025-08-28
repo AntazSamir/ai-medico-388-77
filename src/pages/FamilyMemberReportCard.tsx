@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,7 +50,11 @@ import PageTransition from "@/components/PageTransition";
 // Mock family members data - Load from localStorage
 const getMockFamilyMembers = () => {
   const saved = localStorage.getItem('familyMembers');
-  return saved ? JSON.parse(saved) : [
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  // Default fallback data only if no localStorage data exists
+  return [
     {
       id: "2",
       name: "Jane Doe",
@@ -328,9 +332,18 @@ export default function FamilyMemberReportCard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  console.log('FamilyMemberReportCard mounted with memberId:', memberId);
-  const familyMember = getMockFamilyMembers().find(member => member.id === memberId);
-  console.log('Found family member:', familyMember);
+  // State to store the family member data
+  const [familyMember, setFamilyMember] = useState(null);
+  
+  // Load family member data from localStorage on mount
+  useEffect(() => {
+    console.log('FamilyMemberReportCard mounted with memberId:', memberId);
+    const allMembers = getMockFamilyMembers();
+    const foundMember = allMembers.find(member => member.id === memberId);
+    console.log('Found family member:', foundMember);
+    console.log('All members:', allMembers);
+    setFamilyMember(foundMember || null);
+  }, [memberId]);
   
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
   const [showRecordDialog, setShowRecordDialog] = useState(false);

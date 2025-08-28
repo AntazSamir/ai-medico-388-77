@@ -170,13 +170,27 @@ type MedicalRecord = {
   files?: any[];
 };
 
+type FamilyMember = {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  email: string;
+  phone: string;
+  relationship: string;
+  bloodType: string;
+  allergies: string[];
+  emergencyContact: string;
+  lastVisit?: string;
+};
+
 export default function FamilyMembers() {
   // Load family members from localStorage on component mount
   const [familyMembers, setFamilyMembers] = useState(() => {
     const saved = localStorage.getItem('familyMembers');
     return saved ? JSON.parse(saved) : mockFamilyMembers;
   });
-  const [selectedFamilyMember, setSelectedFamilyMember] = useState<typeof mockFamilyMembers[0] | null>(null);
+  const [selectedFamilyMember, setSelectedFamilyMember] = useState<FamilyMember | null>(null);
   const [showFamilyProfile, setShowFamilyProfile] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
   const [showRecordDialog, setShowRecordDialog] = useState(false);
@@ -192,7 +206,7 @@ export default function FamilyMembers() {
     member.age.toString().includes(searchQuery)
   );
 
-  const handleFamilyMemberClick = (member: typeof mockFamilyMembers[0]) => {
+  const handleFamilyMemberClick = (member: FamilyMember) => {
     console.log('Navigating to:', `/family/${member.id}`);
     navigate(`/family/${member.id}`);
   };
@@ -273,8 +287,9 @@ Patient Information:
   const handleAddFamilyMember = (familyMember: any) => {
     console.log('New family member:', familyMember);
     
-    // Generate a unique ID for the new family member
-    const newId = (familyMembers.length + 1).toString();
+    // Generate a unique ID for the new family member using timestamp
+    const newId = `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.log('Generated new ID:', newId);
     const newMember = {
       ...familyMember,
       id: newId,
@@ -283,8 +298,10 @@ Patient Information:
     
     // Add the new member to the list and save to localStorage
     const updatedMembers = [...familyMembers, newMember];
+    console.log('Updated members list:', updatedMembers);
     setFamilyMembers(updatedMembers);
     localStorage.setItem('familyMembers', JSON.stringify(updatedMembers));
+    console.log('Saved to localStorage:', localStorage.getItem('familyMembers'));
     
     toast({
       title: "Family Member Added",
@@ -317,7 +334,7 @@ Patient Information:
     });
   };
 
-  const handleUndoDelete = (deletedMember: typeof mockFamilyMembers[0]) => {
+  const handleUndoDelete = (deletedMember: FamilyMember) => {
     const updatedMembers = [...familyMembers, deletedMember];
     setFamilyMembers(updatedMembers);
     localStorage.setItem('familyMembers', JSON.stringify(updatedMembers));

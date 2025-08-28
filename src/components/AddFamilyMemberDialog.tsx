@@ -90,7 +90,7 @@ export default function AddFamilyMemberDialog({
   const [familyMember, setFamilyMember] = useState<FamilyMember>(() => ({
     name: "",
     age: 0,
-    gender: "Male",
+    gender: "" as "Male" | "Female" | "Other",
     email: "",
     phone: "",
     relationship: "",
@@ -157,7 +157,7 @@ export default function AddFamilyMemberDialog({
     setFamilyMember({
       name: "",
       age: 0,
-      gender: "Male",
+      gender: "" as "Male" | "Female" | "Other",
       email: "",
       phone: "",
       relationship: "",
@@ -424,7 +424,7 @@ export default function AddFamilyMemberDialog({
                     <Label htmlFor="gender">Gender</Label>
                     <Select value={familyMember.gender} onValueChange={(value) => setFamilyMember({ ...familyMember, gender: value as "Male" | "Female" | "Other" })}>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Male">Male</SelectItem>
