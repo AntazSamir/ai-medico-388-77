@@ -31,6 +31,106 @@ import {
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { RecentActivityManager, ActivityItem } from "../utils/recentActivity";
+import { PrescriptionDialog } from "@/components/prescriptions/PrescriptionDialog";
+import { Prescription } from "@/components/prescriptions/PrescriptionCard";
+
+// Mock prescriptions data - same as Medications page
+const mockPrescriptions: Record<string, Prescription[]> = {
+  "main-user": [
+    {
+      id: "1",
+      medicationName: "Amoxicillin 500mg",
+      instructions: "Take 2 tablets daily with food for bacterial infection",
+      doctor: "Dr. Smith",
+      date: "2024-01-15",
+      status: "Active",
+      dosage: { morning: 1, noon: 0, afternoon: 1, night: 0 },
+      time: "8:00 AM, 6:00 PM",
+      notes: "Complete full course even if symptoms improve",
+      additionalMedicines: [
+        {
+          medicationName: "Omeprazole 20mg",
+          dosage: { morning: 1, noon: 0, afternoon: 0, night: 0 },
+          time: "Before breakfast"
+        }
+      ]
+    },
+    {
+      id: "2", 
+      medicationName: "Ibuprofen 400mg",
+      instructions: "Take as needed for pain, max 3 times daily",
+      doctor: "Dr. Johnson",
+      date: "2024-01-10",
+      status: "As Needed",
+      dosage: { morning: 1, noon: 1, afternoon: 1, night: 0 },
+      time: "As needed",
+      notes: "Do not exceed 1200mg per day"
+    }
+  ],
+  "2": [
+    {
+      id: "jane-1",
+      medicationName: "Metformin 500mg",
+      instructions: "Take twice daily with meals for diabetes management",
+      doctor: "Dr. Wilson",
+      date: "2024-01-05",
+      status: "Active",
+      dosage: { morning: 1, noon: 0, afternoon: 0, night: 1 },
+      time: "With breakfast and dinner",
+      notes: "Monitor blood sugar levels regularly"
+    }
+  ],
+  "3": [
+    {
+      id: "michael-1",
+      medicationName: "Children's Tylenol",
+      instructions: "Give as needed for fever or pain",
+      doctor: "Dr. Peterson",
+      date: "2024-01-08",
+      status: "As Needed",
+      dosage: { morning: 0, noon: 0, afternoon: 1, night: 0 },
+      time: "As needed for fever",
+      notes: "Do not exceed 4 doses in 24 hours"
+    }
+  ],
+  "4": [
+    {
+      id: "emily-1",
+      medicationName: "Children's Allergy Relief",
+      instructions: "Give once daily for seasonal allergies",
+      doctor: "Dr. Wilson",
+      date: "2023-12-20",
+      status: "Active",
+      dosage: { morning: 1, noon: 0, afternoon: 0, night: 0 },
+      time: "With breakfast",
+      notes: "Continue during allergy season"
+    }
+  ]
+};
+
+// Mock family members - same as Medications page
+const mockFamilyMembers = [
+  {
+    id: "main-user",
+    name: "John Doe",
+    relationship: "Primary User"
+  },
+  {
+    id: "2",
+    name: "Jane Doe",
+    relationship: "Spouse"
+  },
+  {
+    id: "3",
+    name: "Michael Doe",
+    relationship: "Son"
+  },
+  {
+    id: "4",
+    name: "Emily Doe",
+    relationship: "Daughter"
+  }
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -52,6 +152,11 @@ const Dashboard = () => {
   const [reportFile, setReportFile] = useState(null);
   const [reportType, setReportType] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Prescription dialog state
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
   // Load recent activity on component mount
   useEffect(() => {
@@ -116,8 +221,20 @@ const Dashboard = () => {
 
   const handleActivityItemClick = (item: ActivityItem) => {
     if (item.type === 'prescription') {
-      navigate('/medications');
+      // Find the prescription by relatedId
+      const allPrescriptions = Object.values(mockPrescriptions).flat();
+      const prescription = allPrescriptions.find(p => p.id === item.relatedId);
+      
+      if (prescription) {
+        setSelectedPrescription(prescription);
+        setSelectedMember(item.memberId || 'main-user');
+        setShowPrescriptionDialog(true);
+      } else {
+        // Fallback to medications page if prescription not found
+        navigate('/medications');
+      }
     } else if (item.type === 'report') {
+      // Navigate to family page for reports
       navigate('/family');
     }
   };
@@ -316,8 +433,12 @@ const Dashboard = () => {
                     recentActivity.slice(0, 3).map((item) => (
                       <div 
                         key={item.id} 
-                        className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100 hover:bg-medical-100/70 hover:border-medical-200 cursor-pointer transition-all duration-200"
+                        className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100 hover:bg-medical-100/70 hover:border-medical-200 cursor-pointer transition-all duration-200 hover:shadow-md"
                         onClick={() => handleActivityItemClick(item)}
+                        title={item.type === 'prescription' ? 
+                          'Click to view prescription details' : 
+                          'Click to view report details'
+                        }
                       >
                         <div className="flex items-center gap-3">
                           {getActivityIcon(item.type)}
@@ -328,6 +449,11 @@ const Dashboard = () => {
                             <p className="text-xs text-medical-600 truncate max-w-[180px]">
                               {item.subtitle}
                             </p>
+                            {item.type === 'prescription' && (
+                              <p className="text-xs text-blue-500 mt-1">
+                                ↗ Click to open prescription
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="text-right">
@@ -342,7 +468,10 @@ const Dashboard = () => {
                       <div>
                         <p className="text-sm font-medium text-medical-700">No recent activity</p>
                         <p className="text-xs text-medical-600">
-                          View prescriptions or reports to see activity
+                          View prescriptions or reports to see activity here
+                        </p>
+                        <p className="text-xs text-blue-500 mt-1">
+                          ↗ Activities will be clickable for quick access
                         </p>
                       </div>
                       <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-medical-300" />
@@ -508,6 +637,19 @@ const Dashboard = () => {
         isOpen={showAddMemberDialog}
         onClose={() => setShowAddMemberDialog(false)}
         onSave={handleAddFamilyMember}
+      />
+      
+      {/* Prescription Details Dialog */}
+      <PrescriptionDialog
+        prescription={selectedPrescription}
+        isOpen={showPrescriptionDialog}
+        onClose={() => {
+          setShowPrescriptionDialog(false);
+          setSelectedPrescription(null);
+          setSelectedMember(null);
+        }}
+        memberId={selectedMember || undefined}
+        memberName={selectedMember ? mockFamilyMembers.find(m => m.id === selectedMember)?.name : undefined}
       />
     </div>
   );
