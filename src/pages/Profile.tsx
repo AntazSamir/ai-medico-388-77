@@ -38,7 +38,6 @@ import {
   Heart, 
   Activity,
   Clock,
-  LogOut,
   Stethoscope,
   Download,
   ChevronDown,
@@ -351,13 +350,7 @@ export default function Profile() {
     });
   };
 
-  const handleLogout = () => {
-    navigate("/login");
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    });
-  };
+
 
   const handleAddPrescription = () => {
     if (!newPrescription.medicationName || !newPrescription.instructions) {
@@ -584,14 +577,6 @@ This is a simulated export. In a real application, this would generate a ${forma
               >
                 <Stethoscope className="mr-2 h-4 w-4" />
                 Analyze Symptoms
-              </Button>
-              <Button 
-                onClick={handleLogout}
-                variant="destructive"
-                className="btn-hover-lift"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
               </Button>
             </div>
           </div>

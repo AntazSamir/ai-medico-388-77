@@ -58,9 +58,9 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-8">
-            <Link to="/dashboard" className="flex items-center space-x-2">
-              <Heart className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-foreground">HealthTracker</span>
+            <Link to="/dashboard" className="flex items-center space-x-2 transition-all duration-300 ease-smooth hover:opacity-90">
+              <Heart className="h-8 w-8 text-primary transition-all duration-200 hover:scale-110" />
+              <span className="text-xl font-bold text-foreground transition-colors duration-200">HealthTracker</span>
             </Link>
             
             <div className="hidden md:flex space-x-1">
@@ -73,13 +73,13 @@ const Navigation = () => {
                     key={item.name}
                     to={item.href}
                     className={cn(
-                      "inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                      "nav-button inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5",
                       isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        ? "bg-primary text-primary-foreground shadow-lg translate-y-0"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted hover:shadow-sm"
                     )}
                   >
-                    <Icon className="h-4 w-4 mr-2" />
+                    <Icon className="h-4 w-4 mr-2 transition-transform duration-200" />
                     {item.name}
                   </Link>
                 );
@@ -92,9 +92,9 @@ const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="text-muted-foreground hover:text-foreground"
+              className="nav-button text-muted-foreground hover:text-white hover:bg-red-500 transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5"
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-4 w-4 mr-2 transition-transform duration-200" />
               Logout
             </Button>
           </div>
@@ -113,13 +113,13 @@ const Navigation = () => {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors",
+                  "nav-button flex items-center px-3 py-2 rounded-md text-base font-medium transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground shadow-lg translate-y-0"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted hover:shadow-sm"
                 )}
               >
-                <Icon className="h-5 w-5 mr-3" />
+                <Icon className="h-5 w-5 mr-3 transition-transform duration-200" />
                 {item.name}
               </Link>
             );

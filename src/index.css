@@ -95,3 +95,12 @@ html {
 .ease-smooth {
   transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
 }
+
+/* Navbar button stability improvements */
+.nav-button {
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
