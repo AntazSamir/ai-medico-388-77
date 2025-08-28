@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, User, Mail, Lock, Calendar, Upload, FileText, X, Phone, MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -88,12 +89,51 @@ export default function SignUpForm() {
       return;
     }
 
-    // TODO: When Supabase is connected, upload files to storage
-    toast({
-      title: "Account created",
-      description: `Account created with ${uploadedFiles.length} document(s). Please log in.`,
-    });
-    navigate("/login");
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: formData.name,
+            phone: formData.phone,
+            address: formData.address,
+            age: formData.age,
+          },
+        },
+      });
+
+      if (error) {
+        toast({
+          title: "Sign up failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Check your email",
+          description: "We've sent a confirmation link to complete your signup.",
+        });
+      } else {
+        toast({
+          title: "Account created",
+          description: "You can now log in.",
+        });
+      }
+
+      navigate("/login");
+    } catch (err) {
+      toast({
+        title: "Unexpected error",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
