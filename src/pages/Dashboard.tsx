@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { RecentActivityManager, ActivityItem } from "@/utils/recentActivity";
+import { RecentActivityManager, ActivityItem } from "../utils/recentActivity";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -57,7 +57,6 @@ const Dashboard = () => {
   useEffect(() => {
     const loadRecentActivity = () => {
       const activity = RecentActivityManager.getRecentActivity();
-      console.log('Dashboard: Loading recent activity:', activity);
       setRecentActivity(activity);
     };
     
@@ -66,13 +65,22 @@ const Dashboard = () => {
     // Listen for storage changes to update activity in real-time
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'recentActivity') {
-        console.log('Dashboard: Storage changed, reloading activity');
         loadRecentActivity();
       }
     };
     
+    // Listen for focus events to refresh activity when returning to tab
+    const handleFocus = () => {
+      loadRecentActivity();
+    };
+    
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   useEffect(() => {
@@ -250,36 +258,6 @@ const Dashboard = () => {
                 Your health overview
               </p>
             </div>
-            {/* Test button for recent activity */}
-            <Button 
-              onClick={() => {
-                RecentActivityManager.addPrescriptionView(
-                  'test-prescription-' + Date.now(),
-                  'Amoxicillin 500mg',
-                  'Dr. Smith',
-                  'main-user',
-                  'John Doe'
-                );
-                
-                RecentActivityManager.addReportView(
-                  'test-report-' + Date.now(),
-                  'Blood Test',
-                  'Annual Blood Work',
-                  '2',
-                  'Jane Doe'
-                );
-                
-                // Refresh activity display
-                const activity = RecentActivityManager.getRecentActivity();
-                setRecentActivity(activity);
-                toast.success('Test activity added!');
-              }}
-              variant="outline"
-              size="sm"
-              className="border-medical-200 text-medical-700 hover:bg-medical-50"
-            >
-              Add Test Activity
-            </Button>
           </div>
         </div>
 
@@ -320,13 +298,17 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card className="glass-card border-medical-100 p-4 sm:p-6">
               <CardHeader className="p-0 mb-3 sm:mb-4">
-                <CardTitle className="flex items-center text-medical-700 text-lg sm:text-xl">
-                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-medical-500" />
-                  Recent Activity
-                </CardTitle>
-                <CardDescription className="text-medical-600 text-sm">
-                  Your latest health tracking
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center text-medical-700 text-lg sm:text-xl">
+                      <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-medical-500" />
+                      Recent Activity
+                    </CardTitle>
+                    <CardDescription className="text-medical-600 text-sm">
+                      Your latest health tracking
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="space-y-3">

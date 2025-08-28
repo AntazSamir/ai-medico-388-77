@@ -46,6 +46,7 @@ import {
   Bot
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
+import { RecentActivityManager } from "@/utils/recentActivity";
 
 // Mock family members data - Load from localStorage
 const getMockFamilyMembers = () => {
@@ -597,8 +598,25 @@ export default function FamilyMemberReportCard() {
   };
 
   const handleRecordClick = (record: MedicalRecord) => {
+    console.log('Tracking report view:', {
+      id: record.id,
+      type: record.type,
+      diagnosis: record.diagnosis,
+      memberId: familyMember.id,
+      memberName: familyMember.name
+    });
+    
     setSelectedRecord(record);
     setShowRecordDialog(true);
+    
+    // Track report view in recent activity
+    RecentActivityManager.addReportView(
+      record.id,
+      record.type,
+      record.diagnosis || record.type,
+      familyMember.id,
+      familyMember.name
+    );
   };
 
   const handleExport = (format: 'pdf' | 'doc') => {

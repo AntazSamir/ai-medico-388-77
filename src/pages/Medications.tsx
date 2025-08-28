@@ -201,8 +201,9 @@ export default function Medications() {
       }
     });
 
-  const handleViewPrescription = (prescription: Prescription) => {
+  const handleViewPrescription = (prescription: Prescription, memberId: string) => {
     setSelectedPrescription(prescription);
+    setSelectedMember(memberId);
     setShowPrescriptionDialog(true);
   };
 
@@ -348,7 +349,7 @@ export default function Medications() {
                                 <DropdownMenuItem
                                   key={prescription.id}
                                   className="cursor-pointer p-3"
-                                  onClick={() => handleViewPrescription(prescription)}
+                                  onClick={() => handleViewPrescription(prescription, member.id)}
                                 >
                                   <div className="flex flex-col space-y-1 w-full">
                                     <div className="flex items-center justify-between">
@@ -379,7 +380,7 @@ export default function Medications() {
                             <div
                               key={prescription.id}
                               className="p-3 rounded-lg bg-muted/30 border border-medical-100 hover:border-medical-300 cursor-pointer transition-colors"
-                              onClick={() => handleViewPrescription(prescription)}
+                              onClick={() => handleViewPrescription(prescription, member.id)}
                             >
                               <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium text-sm">{prescription.medicationName}</span>
@@ -438,7 +439,10 @@ export default function Medications() {
         onClose={() => {
           setShowPrescriptionDialog(false);
           setSelectedPrescription(null);
+          setSelectedMember(null);
         }}
+        memberId={selectedMember || undefined}
+        memberName={selectedMember ? allMembers.find(m => m.id === selectedMember)?.name : undefined}
       />
     </PageTransition>
   );

@@ -62,8 +62,6 @@ export class RecentActivityManager {
       memberName
     };
 
-    console.log('Adding prescription activity:', newItem);
-
     // Add to beginning and limit to MAX_ITEMS
     const updatedItems = [newItem, ...filteredItems].slice(0, MAX_ITEMS);
     
@@ -96,8 +94,6 @@ export class RecentActivityManager {
       memberName
     };
 
-    console.log('Adding report activity:', newItem);
-
     // Add to beginning and limit to MAX_ITEMS
     const updatedItems = [newItem, ...filteredItems].slice(0, MAX_ITEMS);
     
@@ -105,9 +101,7 @@ export class RecentActivityManager {
   }
 
   static getRecentActivity(): ActivityItem[] {
-    const activity = this.getStoredActivity();
-    console.log('Getting recent activity:', activity);
-    return activity;
+    return this.getStoredActivity();
   }
 
   static clearActivity(): void {
