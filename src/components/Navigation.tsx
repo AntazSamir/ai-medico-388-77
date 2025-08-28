@@ -6,16 +6,20 @@ import {
   UserCircle, 
   Heart, 
   LogOut,
-  Home
+  Home,
+  Menu,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -54,78 +58,115 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-background border-b border-border relative z-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center space-x-8">
-            <Link to="/dashboard" className="flex items-center space-x-2 transition-all duration-300 ease-smooth hover:opacity-90">
-              <Heart className="h-8 w-8 text-primary transition-all duration-200 hover:scale-110" />
-              <span className="text-xl font-bold text-foreground transition-colors duration-200">HealthTracker</span>
-            </Link>
-            
-            <div className="hidden md:flex space-x-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={cn(
-                      "nav-button inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-lg translate-y-0"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted hover:shadow-sm"
-                    )}
-                  >
-                    <Icon className="h-4 w-4 mr-2 transition-transform duration-200" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
+    <nav className="bg-background border-b border-border relative z-20 sticky top-0">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
+          {/* Logo - Responsive sizing */}
           <div className="flex items-center">
+            <Link to="/dashboard" className="flex items-center space-x-2 transition-all duration-300 ease-smooth hover:opacity-90 py-2">
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-primary transition-all duration-200 hover:scale-110" />
+              <span className="text-lg sm:text-xl font-bold text-foreground transition-colors duration-200 hidden xs:block">
+                HealthTracker
+              </span>
+              <span className="text-lg font-bold text-foreground transition-colors duration-200 block xs:hidden">
+                Health
+              </span>
+            </Link>
+          </div>
+            
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "nav-button inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5",
+                    isActive
+                      ? "bg-medical-500 text-white shadow-lg translate-y-0"
+                      : "text-muted-foreground hover:text-white hover:bg-medical-500 hover:shadow-sm"
+                  )}
+                >
+                  <Icon className="h-4 w-4 mr-2 transition-transform duration-200" />
+                  {item.name}
+                </Link>
+              );
+            })}
+            
+            {/* Desktop Logout Button */}
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="nav-button text-muted-foreground hover:text-white hover:bg-red-500 transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5"
+              className="nav-button text-muted-foreground hover:text-white hover:bg-red-500 transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5 ml-4"
             >
               <LogOut className="h-4 w-4 mr-2 transition-transform duration-200" />
-              Logout
+              <span className="hidden xl:inline">Logout</span>
+            </Button>
+          </div>
+
+          {/* Mobile/Tablet Navigation Controls */}
+          <div className="flex items-center lg:hidden space-x-2">
+            {/* Mobile Logout Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="nav-button text-muted-foreground hover:text-white hover:bg-red-500 transition-all duration-300 ease-smooth p-2"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+            
+            {/* Mobile Menu Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="nav-button text-muted-foreground hover:text-foreground transition-all duration-300 ease-smooth p-2"
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      <div className="md:hidden">
-        <div className="px-2 pt-2 pb-3 space-y-1 border-t border-border">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "nav-button flex items-center px-3 py-2 rounded-md text-base font-medium transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-lg translate-y-0"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted hover:shadow-sm"
-                )}
-              >
-                <Icon className="h-5 w-5 mr-3 transition-transform duration-200" />
-                {item.name}
-              </Link>
-            );
-          })}
+      {/* Mobile/Tablet Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden">
+          <div className="px-3 pt-2 pb-3 space-y-1 border-t border-border bg-background/95 backdrop-blur-sm">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "nav-button flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5 w-full",
+                    isActive
+                      ? "bg-medical-500 text-white shadow-lg translate-y-0"
+                      : "text-muted-foreground hover:text-white hover:bg-medical-500 hover:shadow-sm"
+                  )}
+                >
+                  <Icon className="h-5 w-5 mr-3 transition-transform duration-200" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 };

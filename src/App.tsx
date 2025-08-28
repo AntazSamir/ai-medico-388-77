@@ -11,6 +11,7 @@ import Symptoms from "./pages/Symptoms";
 import Profile from "./pages/Profile";
 import FamilyMembers from "./pages/FamilyMembers";
 import FamilyMemberReportCard from "./pages/FamilyMemberReportCard";
+import Medications from "./pages/Medications";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/family" element={<FamilyMembers />} />
             <Route path="/family/:memberId" element={<FamilyMemberReportCard />} />
+            <Route path="/medications" element={<Medications />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

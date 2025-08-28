@@ -2,8 +2,20 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
+import AddFamilyMemberDialog from "@/components/AddFamilyMemberDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Activity, 
   Users, 
@@ -12,10 +24,13 @@ import {
   Calendar,
   TrendingUp,
   Heart,
-  Plus
+  Plus,
+  Upload,
+  UserPlus
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { RecentActivityManager, ActivityItem } from "@/utils/recentActivity";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -27,6 +42,38 @@ const Dashboard = () => {
     reports: 0
   });
   const [loading, setLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  
+  // Reports functionality state
+  const [showReportsDialog, setShowReportsDialog] = useState(false);
+  const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState([]);
+  const [selectedMemberId, setSelectedMemberId] = useState("");
+  const [reportFile, setReportFile] = useState(null);
+  const [reportType, setReportType] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Load recent activity on component mount
+  useEffect(() => {
+    const loadRecentActivity = () => {
+      const activity = RecentActivityManager.getRecentActivity();
+      console.log('Dashboard: Loading recent activity:', activity);
+      setRecentActivity(activity);
+    };
+    
+    loadRecentActivity();
+    
+    // Listen for storage changes to update activity in real-time
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'recentActivity') {
+        console.log('Dashboard: Storage changed, reloading activity');
+        loadRecentActivity();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -58,6 +105,31 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handleActivityItemClick = (item: ActivityItem) => {
+    if (item.type === 'prescription') {
+      navigate('/medications');
+    } else if (item.type === 'report') {
+      navigate('/family');
+    }
+  };
+
+  const getActivityIcon = (type: string) => {
+    return type === 'prescription' ? 
+      <Pill className="h-4 w-4 text-blue-500" /> : 
+      <FileText className="h-4 w-4 text-green-500" />;
+  };
+
+  // Load family members from localStorage
+  useEffect(() => {
+    const loadFamilyMembers = () => {
+      const saved = localStorage.getItem('familyMembers');
+      if (saved) {
+        setFamilyMembers(JSON.parse(saved));
+      }
+    };
+    loadFamilyMembers();
+  }, []);
 
   const loadDashboardStats = async () => {
     try {
@@ -93,6 +165,57 @@ const Dashboard = () => {
     }
   };
 
+  const handleReportUpload = async () => {
+    if (!selectedMemberId || !reportFile || !reportType) {
+      toast.error("Please select a family member, report type, and file");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Simulate upload process
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Update stats
+      setStats(prev => ({ ...prev, reports: prev.reports + 1 }));
+      
+      // Reset form
+      setSelectedMemberId("");
+      setReportFile(null);
+      setReportType("");
+      setShowReportsDialog(false);
+      
+      toast.success("Report uploaded successfully!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload report");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleAddFamilyMember = (member) => {
+    const newMember = {
+      ...member,
+      id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      lastVisit: "Not yet visited"
+    };
+    
+    const updatedMembers = [...familyMembers, newMember];
+    setFamilyMembers(updatedMembers);
+    localStorage.setItem('familyMembers', JSON.stringify(updatedMembers));
+    
+    // Update stats
+    setStats(prev => ({ ...prev, familyMembers: prev.familyMembers + 1 }));
+    
+    toast.success(`${member.name} has been added to your family members`);
+  };
+
+  const reportTypes = [
+    "Blood Test", "X-Ray", "MRI", "CT Scan", "Ultrasound", 
+    "ECG", "Biopsy", "Pathology", "Allergy Test", "Other"
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-medical-50 via-white to-medical-100 flex items-center justify-center">
@@ -103,147 +226,307 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-medical-50 via-white to-medical-100 relative overflow-hidden">
-      {/* Background decoration */}
+      {/* Background decoration - responsive */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-medical-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-medical-600/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-medical-100/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-20 sm:-top-40 -right-20 sm:-right-40 w-40 h-40 sm:w-80 sm:h-80 bg-medical-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 sm:-bottom-40 -left-20 sm:-left-40 w-40 h-40 sm:w-80 sm:h-80 bg-medical-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 sm:w-96 sm:h-96 bg-medical-100/20 rounded-full blur-3xl"></div>
       </div>
       
       <Navigation />
       
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-medical-700 mb-2">
-            Welcome back, {user?.email}!
-          </h1>
-          <p className="text-medical-600">
-            Here's an overview of your health tracking data.
-          </p>
+      <main className="safe-area-padding max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-8 relative z-10">
+        {/* Header - Mobile responsive */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-medical-700 mb-2">
+                Welcome back!
+              </h1>
+              <p className="text-sm sm:text-base text-medical-600 hidden sm:block">
+                Here's an overview of your health tracking data.
+              </p>
+              <p className="text-sm text-medical-600 block sm:hidden">
+                Your health overview
+              </p>
+            </div>
+            {/* Test button for recent activity */}
+            <Button 
+              onClick={() => {
+                RecentActivityManager.addPrescriptionView(
+                  'test-prescription-' + Date.now(),
+                  'Amoxicillin 500mg',
+                  'Dr. Smith',
+                  'main-user',
+                  'John Doe'
+                );
+                
+                RecentActivityManager.addReportView(
+                  'test-report-' + Date.now(),
+                  'Blood Test',
+                  'Annual Blood Work',
+                  '2',
+                  'Jane Doe'
+                );
+                
+                // Refresh activity display
+                const activity = RecentActivityManager.getRecentActivity();
+                setRecentActivity(activity);
+                toast.success('Test activity added!');
+              }}
+              variant="outline"
+              size="sm"
+              className="border-medical-200 text-medical-700 hover:bg-medical-50"
+            >
+              Add Test Activity
+            </Button>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="glass-card border-medical-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-medical-700">Family Members</CardTitle>
-              <Users className="h-4 w-4 text-medical-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-medical-700">{stats.familyMembers}</div>
-              <p className="text-xs text-medical-600">
-                People in your care
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card border-medical-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-medical-700">Symptoms Tracked</CardTitle>
-              <Activity className="h-4 w-4 text-medical-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-medical-700">{stats.symptoms}</div>
-              <p className="text-xs text-medical-600">
-                Total symptom entries
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card border-medical-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-medical-700">Prescriptions</CardTitle>
-              <Pill className="h-4 w-4 text-medical-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-medical-700">{stats.prescriptions}</div>
-              <p className="text-xs text-medical-600">
-                Active prescriptions
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card border-medical-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-medical-700">Medical Reports</CardTitle>
-              <FileText className="h-4 w-4 text-medical-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-medical-700">{stats.reports}</div>
-              <p className="text-xs text-medical-600">
-                Stored reports
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="glass-card border-medical-100">
-            <CardHeader>
-              <CardTitle className="flex items-center text-medical-700">
-                <Heart className="h-5 w-5 mr-2 text-medical-500" />
-                Quick Actions
-              </CardTitle>
-              <CardDescription className="text-medical-600">
-                Common tasks to manage your health data
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button asChild className="h-auto p-4 flex-col bg-medical-500 hover:bg-medical-600 text-white btn-press">
-                  <Link to="/symptoms">
-                    <Activity className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Track Symptoms</span>
-                  </Link>
-                </Button>
-                
-                <Button asChild variant="outline" className="h-auto p-4 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 btn-press">
-                  <Link to="/family">
-                    <Users className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Family</span>
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card border-medical-100">
-            <CardHeader>
-              <CardTitle className="flex items-center text-medical-700">
-                <TrendingUp className="h-5 w-5 mr-2 text-medical-500" />
-                Health Overview
-              </CardTitle>
-              <CardDescription className="text-medical-600">
-                Your health tracking summary
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100">
-                  <div>
-                    <p className="text-sm font-medium text-medical-700">Recent Activity</p>
-                    <p className="text-xs text-medical-600">
-                      {stats.symptoms > 0 ? `${stats.symptoms} symptoms tracked` : "No symptoms tracked yet"}
-                    </p>
-                  </div>
-                  <Activity className="h-8 w-8 text-medical-500" />
+        {/* Quick Actions - Mobile optimized */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* Quick Action Buttons - Mobile First */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <Button asChild className="h-20 sm:h-24 flex-col bg-medical-500 hover:bg-medical-600 text-white btn-press rounded-xl">
+              <Link to="/symptoms">
+                <Activity className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                <span className="text-xs sm:text-sm font-medium">Track Symptoms</span>
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" className="h-20 sm:h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 btn-press rounded-xl">
+              <Link to="/family">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                <span className="text-xs sm:text-sm font-medium">Family</span>
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" className="h-20 sm:h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 btn-press rounded-xl">
+              <Link to="/profile">
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                <span className="text-xs sm:text-sm font-medium">Profile</span>
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" className="h-20 sm:h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 btn-press rounded-xl">
+              <Link to="/medications">
+                <Pill className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                <span className="text-xs sm:text-sm font-medium">Meds</span>
+              </Link>
+            </Button>
+          </div>
+          
+          {/* Health Overview Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <Card className="glass-card border-medical-100 p-4 sm:p-6">
+              <CardHeader className="p-0 mb-3 sm:mb-4">
+                <CardTitle className="flex items-center text-medical-700 text-lg sm:text-xl">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-medical-500" />
+                  Recent Activity
+                </CardTitle>
+                <CardDescription className="text-medical-600 text-sm">
+                  Your latest health tracking
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-3">
+                  {recentActivity.length > 0 ? (
+                    recentActivity.slice(0, 3).map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100 hover:bg-medical-100/70 hover:border-medical-200 cursor-pointer transition-all duration-200"
+                        onClick={() => handleActivityItemClick(item)}
+                      >
+                        <div className="flex items-center gap-3">
+                          {getActivityIcon(item.type)}
+                          <div>
+                            <p className="text-sm font-medium text-medical-700 truncate max-w-[200px]">
+                              {item.title}
+                            </p>
+                            <p className="text-xs text-medical-600 truncate max-w-[180px]">
+                              {item.subtitle}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-medical-500">
+                            {RecentActivityManager.getRelativeTime(item.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100">
+                      <div>
+                        <p className="text-sm font-medium text-medical-700">No recent activity</p>
+                        <p className="text-xs text-medical-600">
+                          View prescriptions or reports to see activity
+                        </p>
+                      </div>
+                      <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-medical-300" />
+                    </div>
+                  )}
                 </div>
-                
-                <div className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100">
-                  <div>
-                    <p className="text-sm font-medium text-medical-700">Medications</p>
-                    <p className="text-xs text-medical-600">
-                      {stats.prescriptions > 0 ? `${stats.prescriptions} prescriptions` : "No prescriptions added"}
-                    </p>
-                  </div>
-                  <Pill className="h-8 w-8 text-medical-500" />
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card border-medical-100 p-4 sm:p-6">
+              <CardHeader className="p-0 mb-3 sm:mb-4">
+                <CardTitle className="flex items-center text-medical-700 text-lg sm:text-xl">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-medical-500" />
+                  Health Summary
+                </CardTitle>
+                <CardDescription className="text-medical-600 text-sm">
+                  Your health data overview
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setShowAddMemberDialog(true)}
+                    className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100 hover:bg-medical-100/70 hover:border-medical-200 transition-all duration-200 cursor-pointer w-full"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-medical-700">Family Members</p>
+                      <p className="text-xs text-medical-600">
+                        {stats.familyMembers > 0 ? `${stats.familyMembers} people` : "Add family"}
+                      </p>
+                    </div>
+                    <Users className="h-6 w-6 sm:h-8 sm:w-8 text-medical-500" />
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowReportsDialog(true)}
+                    className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100 hover:bg-medical-100/70 hover:border-medical-200 transition-all duration-200 cursor-pointer w-full"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-medical-700">Reports</p>
+                      <p className="text-xs text-medical-600">
+                        {stats.reports > 0 ? `${stats.reports} stored` : "Upload reports"}
+                      </p>
+                    </div>
+                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-medical-500" />
+                  </button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
+      
+      {/* Reports Upload Dialog */}
+      <Dialog open={showReportsDialog} onOpenChange={setShowReportsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-medical-500" />
+              Upload Medical Reports
+            </DialogTitle>
+            <DialogDescription>
+              Upload medical reports for your family members or add a new family member.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Family Member Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="family-member">Select Family Member</Label>
+              <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a family member" />
+                </SelectTrigger>
+                <SelectContent>
+                  {familyMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name} ({member.relationship})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Add Family Member Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddMemberDialog(true)}
+                className="w-full mt-2 border-medical-200 text-medical-700 hover:bg-medical-50"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add New Family Member
+              </Button>
+            </div>
+            
+            {/* Report Type Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="report-type">Report Type</Label>
+              <Select value={reportType} onValueChange={setReportType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select report type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reportTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* File Upload */}
+            <div className="space-y-2">
+              <Label htmlFor="report-file">Upload File</Label>
+              <Input
+                id="report-file"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => setReportFile(e.target.files?.[0] || null)}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-gray-500">
+                Accepted formats: PDF, JPG, PNG, DOC, DOCX (Max 10MB)
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowReportsDialog(false)}
+              disabled={isUploading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleReportUpload}
+              disabled={!selectedMemberId || !reportFile || !reportType || isUploading}
+              className="bg-medical-500 hover:bg-medical-600"
+            >
+              {isUploading ? (
+                <>
+                  <Upload className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Report
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Family Member Dialog */}
+      <AddFamilyMemberDialog
+        isOpen={showAddMemberDialog}
+        onClose={() => setShowAddMemberDialog(false)}
+        onSave={handleAddFamilyMember}
+      />
     </div>
   );
 };
