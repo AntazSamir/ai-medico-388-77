@@ -95,75 +95,82 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-gradient-to-br from-medical-50 via-white to-medical-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-medical-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-medical-50 via-white to-medical-100 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-medical-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-medical-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-medical-100/20 rounded-full blur-3xl"></div>
+      </div>
+      
       <Navigation />
       
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-medical-700 mb-2">
             Welcome back, {user?.email}!
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-medical-600">
             Here's an overview of your health tracking data.
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="glass-card border-medical-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Family Members</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-medical-700">Family Members</CardTitle>
+              <Users className="h-4 w-4 text-medical-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.familyMembers}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-medical-700">{stats.familyMembers}</div>
+              <p className="text-xs text-medical-600">
                 People in your care
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-medical-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Symptoms Tracked</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-medical-700">Symptoms Tracked</CardTitle>
+              <Activity className="h-4 w-4 text-medical-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.symptoms}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-medical-700">{stats.symptoms}</div>
+              <p className="text-xs text-medical-600">
                 Total symptom entries
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-medical-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Prescriptions</CardTitle>
-              <Pill className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-medical-700">Prescriptions</CardTitle>
+              <Pill className="h-4 w-4 text-medical-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.prescriptions}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-medical-700">{stats.prescriptions}</div>
+              <p className="text-xs text-medical-600">
                 Active prescriptions
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-medical-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Medical Reports</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-medical-700">Medical Reports</CardTitle>
+              <FileText className="h-4 w-4 text-medical-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.reports}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-medical-700">{stats.reports}</div>
+              <p className="text-xs text-medical-600">
                 Stored reports
               </p>
             </CardContent>
@@ -172,26 +179,26 @@ const Dashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
+          <Card className="glass-card border-medical-100">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Heart className="h-5 w-5 mr-2 text-primary" />
+              <CardTitle className="flex items-center text-medical-700">
+                <Heart className="h-5 w-5 mr-2 text-medical-500" />
                 Quick Actions
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-medical-600">
                 Common tasks to manage your health data
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button asChild className="h-auto p-4 flex-col">
+                <Button asChild className="h-auto p-4 flex-col bg-medical-500 hover:bg-medical-600 text-white btn-press">
                   <Link to="/symptoms">
                     <Activity className="h-6 w-6 mb-2" />
                     <span className="text-sm">Track Symptoms</span>
                   </Link>
                 </Button>
                 
-                <Button asChild variant="outline" className="h-auto p-4 flex-col">
+                <Button asChild variant="outline" className="h-auto p-4 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 btn-press">
                   <Link to="/family">
                     <Users className="h-6 w-6 mb-2" />
                     <span className="text-sm">Manage Family</span>
@@ -201,36 +208,36 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-medical-100">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+              <CardTitle className="flex items-center text-medical-700">
+                <TrendingUp className="h-5 w-5 mr-2 text-medical-500" />
                 Health Overview
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-medical-600">
                 Your health tracking summary
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100">
                   <div>
-                    <p className="text-sm font-medium">Recent Activity</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium text-medical-700">Recent Activity</p>
+                    <p className="text-xs text-medical-600">
                       {stats.symptoms > 0 ? `${stats.symptoms} symptoms tracked` : "No symptoms tracked yet"}
                     </p>
                   </div>
-                  <Activity className="h-8 w-8 text-primary" />
+                  <Activity className="h-8 w-8 text-medical-500" />
                 </div>
                 
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-medical-50/50 rounded-lg border border-medical-100">
                   <div>
-                    <p className="text-sm font-medium">Medications</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium text-medical-700">Medications</p>
+                    <p className="text-xs text-medical-600">
                       {stats.prescriptions > 0 ? `${stats.prescriptions} prescriptions` : "No prescriptions added"}
                     </p>
                   </div>
-                  <Pill className="h-8 w-8 text-primary" />
+                  <Pill className="h-8 w-8 text-medical-500" />
                 </div>
               </div>
             </CardContent>
