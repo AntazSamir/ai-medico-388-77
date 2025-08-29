@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { LogIn, Brain, Shield, ActivitySquare } from "lucide-react";
+import { LogIn, Brain, Shield, ActivitySquare, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -45,6 +47,45 @@ export default function LoginForm() {
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResettingPassword(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          title: "Reset failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Reset email sent",
+          description: "Check your email for password reset instructions",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -132,15 +173,25 @@ export default function LoginForm() {
                   <label htmlFor="password" className="text-sm font-medium text-medical-700">
                     Password
                   </label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 border-medical-200 focus:border-medical-500 focus:ring-medical-500"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="h-12 pr-12 border-medical-200 focus:border-medical-500 focus:ring-medical-500"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-medical-500 hover:text-medical-600 transition-colors"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                 </div>
 
                 <Button 
@@ -151,6 +202,17 @@ export default function LoginForm() {
                   Sign In
                 </Button>
               </form>
+
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isResettingPassword}
+                  className="w-full text-sm text-medical-600 hover:text-medical-700 font-medium transition-colors disabled:opacity-50"
+                >
+                  {isResettingPassword ? "Sending reset email..." : "Forgot your password?"}
+                </button>
+              </div>
 
               <div className="text-center pt-4 border-t border-medical-100">
                 <button
