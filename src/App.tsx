@@ -13,6 +13,8 @@ import FamilyMembers from "./pages/FamilyMembers";
 import FamilyMemberReportCard from "./pages/FamilyMemberReportCard";
 import Medications from "./pages/Medications";
 import NotFound from "./pages/NotFound";
+import AuthCallback from "./pages/AuthCallback";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   const queryClient = new QueryClient();
@@ -27,6 +29,8 @@ function App() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/symptoms" element={<Symptoms />} />
             <Route path="/profile" element={<Profile />} />
