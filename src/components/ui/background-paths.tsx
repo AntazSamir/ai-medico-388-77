@@ -41,7 +41,8 @@ function FloatingPaths({ position }: { position: number }) {
                         transition={{
                             duration: 20 + Math.random() * 10,
                             repeat: Number.POSITIVE_INFINITY,
-                            ease: "linear",
+                            ease: [0.4, 0.0, 0.2, 1],
+                            repeatType: "loop",
                         }}
                     />
                 ))}
@@ -87,8 +88,9 @@ export function BackgroundPaths({
                                                 wordIndex * 0.1 +
                                                 letterIndex * 0.03,
                                             type: "spring",
-                                            stiffness: 150,
-                                            damping: 25,
+                                            stiffness: 200,
+                                            damping: 20,
+                                            duration: 0.6,
                                         }}
                                         className="inline-block text-transparent bg-clip-text 
                                         bg-gradient-to-r from-medical-700 to-medical-500 

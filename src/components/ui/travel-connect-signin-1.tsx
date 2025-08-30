@@ -427,10 +427,14 @@ const MedicalSignIn = ({
               <AnimatePresence mode="wait">
                 {mode === "signup" && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: 0, height: 0, y: -10 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -10 }}
+                    transition={{ 
+                      duration: 0.4, 
+                      ease: [0.4, 0.0, 0.2, 1],
+                      y: { type: "spring", stiffness: 300, damping: 30 }
+                    }}
                   >
                     <Input
                       type="password"
@@ -447,8 +451,14 @@ const MedicalSignIn = ({
               <motion.div
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ 
+                  scale: 1.02,
+                  transition: { type: "spring", stiffness: 400, damping: 25 }
+                }}
+                whileTap={{ 
+                  scale: 0.98,
+                  transition: { duration: 0.1, ease: [0.4, 0.0, 0.2, 1] }
+                }}
               >
                 <Button
                   type="submit"
@@ -456,13 +466,27 @@ const MedicalSignIn = ({
                   className="w-full h-12 text-base font-medium"
                 >
                   {isLoading ? (
-                    "Loading..."
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ 
+                        duration: 1, 
+                        repeat: Infinity, 
+                        ease: "linear" 
+                      }}
+                    >
+                      Loading...
+                    </motion.div>
                   ) : (
                     <>
                       {mode === "signin" ? "Sign In" : "Create Account"}
                       <motion.div
                         animate={{ x: isHovered ? 5 : 0 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        transition={{ 
+                          type: "spring", 
+                          stiffness: 400, 
+                          damping: 25,
+                          duration: 0.3
+                        }}
                       >
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </motion.div>

@@ -39,7 +39,8 @@ function FloatingPaths({ position }: { position: number }) {
                         transition={{
                             duration: 20 + Math.random() * 10,
                             repeat: Number.POSITIVE_INFINITY,
-                            ease: "linear",
+                            ease: [0.4, 0.0, 0.2, 1],
+                            repeatType: "loop",
                         }}
                     />
                 ))}

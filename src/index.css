@@ -87,13 +87,25 @@
   @apply bg-white bg-opacity-80 backdrop-blur-lg border border-gray-100 rounded-xl shadow-lg;
 }
 
-/* Smooth scrolling and better mobile experience */
+/* Smooth scrolling and better mobile experience - enhanced */
 html {
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
   /* Prevent zoom on inputs on iOS */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+/* Enhanced scroll behavior */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Add smooth focus transitions */
+  :focus {
+    transition: outline-offset 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
 }
 
 /* Mobile viewport optimization */
@@ -104,12 +116,12 @@ html {
   }
 }
 
-/* Touch-friendly improvements */
+/* Touch-friendly improvements with smoother animations */
 @media (hover: none) and (pointer: coarse) {
   /* Mobile-specific styles */
   .btn-press:active {
-    transform: scale(0.98);
-    transition: transform 100ms ease;
+    transform: scale(0.96);
+    transition: transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
   }
   
   /* Disable hover animations on touch devices for nav-buttons */
@@ -120,14 +132,20 @@ html {
   
   /* Touch feedback for nav-buttons */
   .nav-button:active {
-    transform: scale(0.98);
-    transition: transform 150ms ease-out;
+    transform: scale(0.96) translateY(2px);
+    transition: transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
   }
   
   /* Increase touch targets on mobile */
   button, .nav-button, input, textarea, select {
     min-height: 44px;
     touch-action: manipulation;
+  }
+
+  /* Smooth feedback for card interactions */
+  .card-hover:active {
+    transform: scale(0.98);
+    transition: transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
   }
 }
 
@@ -267,14 +285,16 @@ html {
   }
 }
 
-/* Mobile drawer animation */
+/* Mobile drawer animation - enhanced for smoother performance */
 .mobile-drawer {
   transform: translateY(100%);
-  transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+  will-change: transform;
 }
 
 .mobile-drawer.open {
   transform: translateY(0);
+  transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 /* Enhanced mobile text readability */
@@ -337,50 +357,109 @@ html {
   @apply bg-medical-500 rounded-full;
 }
 
-/* Enhanced button animations removed */
+/* Enhanced button animations with ultra-smooth transitions */
 .btn-press {
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .btn-press:active {
   filter: brightness(0.95);
-  transition: all 80ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: scale(0.98);
+  transition: all 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* Navbar button styles with soft forward hover animations */
+/* Navbar button styles with ultra-smooth hover animations */
 .nav-button {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transform-origin: center;
   backface-visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* Custom scale utilities for subtle animations */
+/* Custom scale utilities for smooth animations */
 .hover\:scale-102:hover {
   transform: scale(1.02);
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 /* Smooth transition for all hover states */
 .nav-button:hover {
   will-change: transform;
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 /* Reset will-change after animation */
 .nav-button:not(:hover) {
   will-change: auto;
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* Soft ease-out timing for forward animations */
+/* Ultra-smooth easing functions */
 .ease-soft {
-  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-@layer base {
-  * {
-    @apply border-border;
+.ease-smooth {
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.ease-spring {
+  transition-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Smooth page transitions */
+.page-transition {
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Smooth input focus animations */
+input:focus, textarea:focus, select:focus {
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Smooth card hover effects */
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* GPU acceleration and performance optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+}
+
+/* Optimize animations for 60fps */
+.smooth-animation {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Reset will-change after animation completes */
+.smooth-animation:not(:hover):not(:focus):not(:active) {
+  will-change: auto;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  body {
-    @apply bg-background text-foreground;
+  
+  .nav-button:hover {
+    transform: none !important;
   }
 }
