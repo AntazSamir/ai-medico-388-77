@@ -80,6 +80,15 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
   }
+  
+  /* Add thin borders on focus globally */
+  *:focus,
+  *:focus-visible {
+    @apply outline-none !important;
+    box-shadow: none !important;
+    border: 1px solid hsl(var(--border)) !important;
+    transition: border-color 0.2s ease !important;
+  }
 }
 
 /* Glass card effect */
@@ -102,9 +111,11 @@ html {
     scroll-behavior: smooth;
   }
   
-  /* Add smooth focus transitions */
+  /* Add smooth focus transitions with thin borders */
   :focus {
-    transition: outline-offset 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
+    outline: none;
+    border: 1px solid hsl(var(--primary)) !important;
+    transition: border-color 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
   }
 }
 
@@ -252,12 +263,12 @@ html {
   }
 }
 
-/* Improved focus styles for accessibility */
+/* Improved focus styles for accessibility - thin borders added */
 @media (prefers-reduced-motion: no-preference) {
   :focus {
-    outline: 2px solid hsl(var(--primary));
-    outline-offset: 2px;
-    transition: outline-offset 200ms ease;
+    outline: none;
+    border: 1px solid hsl(var(--primary)) !important;
+    transition: border-color 200ms ease;
   }
 }
 
@@ -339,9 +350,33 @@ html {
   }
 }
 
-/* Better focus styles */
+/* Better focus styles - thin borders added */
 :focus {
-  @apply outline-none ring-2 ring-medical-500 ring-offset-2 ring-offset-white;
+  @apply outline-none;
+  border: 1px solid hsl(var(--border)) !important;
+  transition: border-color 0.2s ease;
+}
+
+/* Remove focus borders from all interactive elements and add thin borders */
+*:focus,
+*:focus-visible,
+input:focus,
+input:focus-visible,
+button:focus,
+button:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+a:focus,
+a:focus-visible,
+[tabindex]:focus,
+[tabindex]:focus-visible {
+  outline: none !important;
+  ring: none !important;
+  box-shadow: none !important;
+  border: 1px solid hsl(var(--border)) !important;
+  transition: border-color 0.2s ease !important;
 }
 
 /* Custom scrollbar */
