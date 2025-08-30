@@ -1,0 +1,504 @@
+import React, { useRef, useEffect, useState } from "react";
+import { Eye, EyeOff, ArrowRight, Heart, Shield, Brain, Activity } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Helper function to merge class names
+const cn = (...classes: string[]) => {
+  return classes.filter(Boolean).join(" ");
+};
+
+// Custom Button Component
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+  variant?: "default" | "outline";
+  className?: string;
+}
+
+const Button = ({ 
+  children, 
+  variant = "default", 
+  className = "", 
+  ...props 
+}: ButtonProps) => {
+  const baseStyles = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
+  
+  const variantStyles = {
+    default: "bg-primary bg-gradient-to-r from-medical-500 to-medical-600 text-white hover:from-medical-600 hover:to-medical-700",
+    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+  };
+  
+  return (
+    <button
+      className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+// Custom Input Component
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
+}
+
+const Input = ({ className = "", ...props }: InputProps) => {
+  return (
+    <input
+      className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm text-gray-800 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      {...props}
+    />
+  );
+};
+
+type RoutePoint = {
+  x: number;
+  y: number;
+  delay: number;
+};
+
+const MedicalNetworkMap = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  // Set up medical network connections
+  const routes: { start: RoutePoint; end: RoutePoint; color: string }[] = [
+    {
+      start: { x: 100, y: 150, delay: 0 },
+      end: { x: 200, y: 80, delay: 2 },
+      color: "#0ea5e9", // medical-500
+    },
+    {
+      start: { x: 200, y: 80, delay: 2 },
+      end: { x: 260, y: 120, delay: 4 },
+      color: "#0ea5e9",
+    },
+    {
+      start: { x: 50, y: 50, delay: 1 },
+      end: { x: 150, y: 180, delay: 3 },
+      color: "#0ea5e9",
+    },
+    {
+      start: { x: 280, y: 60, delay: 0.5 },
+      end: { x: 180, y: 180, delay: 2.5 },
+      color: "#0ea5e9",
+    },
+  ];
+
+  // Create dots for the medical network visualization
+  const generateDots = (width: number, height: number) => {
+    const dots = [];
+    const gap = 15;
+    const dotRadius = 1.5;
+
+    // Create a medical network pattern
+    for (let x = 0; x < width; x += gap) {
+      for (let y = 0; y < height; y += gap) {
+        // Shape the dots to form a medical network pattern
+        const isInNetworkShape =
+          // Hospital nodes
+          ((x < width * 0.3 && x > width * 0.1) && (y < height * 0.4 && y > height * 0.2)) ||
+          // Clinic nodes
+          ((x < width * 0.7 && x > width * 0.5) && (y < height * 0.3 && y > height * 0.1)) ||
+          // Research centers
+          ((x < width * 0.5 && x > width * 0.3) && (y < height * 0.7 && y > height * 0.5)) ||
+          // Patient network
+          ((x < width * 0.9 && x > width * 0.6) && (y < height * 0.8 && y > height * 0.4));
+
+        if (isInNetworkShape && Math.random() > 0.4) {
+          dots.push({
+            x,
+            y,
+            radius: dotRadius,
+            opacity: Math.random() * 0.6 + 0.3,
+          });
+        }
+      }
+    }
+    return dots;
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeObserver = new ResizeObserver(entries => {
+      const { width, height } = entries[0].contentRect;
+      setDimensions({ width, height });
+      canvas.width = width;
+      canvas.height = height;
+    });
+
+    resizeObserver.observe(canvas.parentElement as Element);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!dimensions.width || !dimensions.height) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dots = generateDots(dimensions.width, dimensions.height);
+    let animationFrameId: number;
+    let startTime = Date.now();
+
+    // Draw background dots
+    function drawDots() {
+      ctx.clearRect(0, 0, dimensions.width, dimensions.height);
+      
+      // Draw the dots
+      dots.forEach(dot => {
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(14, 165, 233, ${dot.opacity})`; // medical-500
+        ctx.fill();
+      });
+    }
+
+    // Draw animated routes
+    function drawRoutes() {
+      const currentTime = (Date.now() - startTime) / 1000;
+      
+      routes.forEach(route => {
+        const elapsed = currentTime - route.start.delay;
+        if (elapsed <= 0) return;
+        
+        const duration = 3;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const x = route.start.x + (route.end.x - route.start.x) * progress;
+        const y = route.start.y + (route.end.y - route.start.y) * progress;
+        
+        // Draw the route line
+        ctx.beginPath();
+        ctx.moveTo(route.start.x, route.start.y);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = route.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw the start point
+        ctx.beginPath();
+        ctx.arc(route.start.x, route.start.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = route.color;
+        ctx.fill();
+        
+        // Draw the moving point
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#38bdf8"; // medical-400
+        ctx.fill();
+        
+        // Add glow effect to the moving point
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(56, 189, 248, 0.4)"; // medical-400 with opacity
+        ctx.fill();
+        
+        // If the route is complete, draw the end point
+        if (progress === 1) {
+          ctx.beginPath();
+          ctx.arc(route.end.x, route.end.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = route.color;
+          ctx.fill();
+        }
+      });
+    }
+    
+    // Animation loop
+    function animate() {
+      drawDots();
+      drawRoutes();
+      
+      // If all routes are complete, restart the animation
+      const currentTime = (Date.now() - startTime) / 1000;
+      if (currentTime > 12) {
+        startTime = Date.now();
+      }
+      
+      animationFrameId = requestAnimationFrame(animate);
+    }
+    
+    animate();
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [dimensions]);
+
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+    </div>
+  );
+};
+
+interface MedicalSignInProps {
+  mode?: "signin" | "signup";
+  onSubmit?: (data: { email: string; password: string; [key: string]: any }) => void;
+  onToggleMode?: () => void;
+  isLoading?: boolean;
+}
+
+const MedicalSignIn = ({ 
+  mode = "signin", 
+  onSubmit, 
+  onToggleMode,
+  isLoading = false 
+}: MedicalSignInProps) => {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    name: "",
+    confirmPassword: ""
+  });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit?.(formData);
+  };
+  
+  return (
+    <div className="flex w-full h-full items-center justify-center min-h-screen bg-gradient-to-br from-medical-50 to-medical-100 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-5xl overflow-hidden rounded-2xl flex bg-white shadow-2xl"
+      >
+        {/* Left side - Medical Network Map */}
+        <div className="hidden md:block w-1/2 h-[700px] relative overflow-hidden border-r border-gray-100">
+          <div className="absolute inset-0 bg-gradient-to-br from-medical-50 to-medical-100">
+            <MedicalNetworkMap />
+            
+            {/* Logo and text overlay */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10">
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="mb-8"
+              >
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-medical-500 to-medical-600 flex items-center justify-center mb-4 mx-auto">
+                  <Heart className="h-8 w-8 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
+                  AI Medico
+                </h1>
+                <p className="text-gray-600 text-center text-lg">
+                  Your Health, AI Powered
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                className="space-y-4 max-w-xs"
+              >
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <div className="w-8 h-8 bg-medical-100 rounded-lg flex items-center justify-center">
+                    <Brain className="w-4 h-4 text-medical-600" />
+                  </div>
+                  <span className="text-sm">AI-Powered Diagnosis</span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <div className="w-8 h-8 bg-medical-100 rounded-lg flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-medical-600" />
+                  </div>
+                  <span className="text-sm">Secure Health Records</span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <div className="w-8 h-8 bg-medical-100 rounded-lg flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-medical-600" />
+                  </div>
+                  <span className="text-sm">Real-time Monitoring</span>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1, duration: 0.5 }}
+                className="mt-8 text-center"
+              >
+                <p className="text-gray-500 text-sm">
+                  Trusted by healthcare professionals worldwide
+                </p>
+                <div className="flex justify-center items-center space-x-6 mt-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-medical-600">50K+</div>
+                    <div className="text-xs text-gray-500">Patients</div>
+                  </div>
+                  <div className="w-px h-8 bg-gray-300" />
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-medical-600">98%</div>
+                    <div className="text-xs text-gray-500">Accuracy</div>
+                  </div>
+                  <div className="w-px h-8 bg-gray-300" />
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-medical-600">24/7</div>
+                    <div className="text-xs text-gray-500">Support</div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right side - Sign in form */}
+        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="max-w-sm mx-auto w-full"
+          >
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {mode === "signin" ? "Welcome Back" : "Create Account"}
+              </h2>
+              <p className="text-gray-600">
+                {mode === "signin" 
+                  ? "Access your health dashboard" 
+                  : "Join the future of healthcare"
+                }
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <AnimatePresence mode="wait">
+                {mode === "signup" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Input
+                      type="text"
+                      placeholder="Full Name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="h-12"
+                      required
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email Address"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="h-12"
+                  required
+                />
+              </div>
+
+              <div className="relative">
+                <Input
+                  type={isPasswordVisible ? "text" : "password"}
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="h-12 pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  {isPasswordVisible ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {mode === "signup" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Input
+                      type="password"
+                      placeholder="Confirm Password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      className="h-12"
+                      required
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <motion.div
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 text-base font-medium"
+                >
+                  {isLoading ? (
+                    "Loading..."
+                  ) : (
+                    <>
+                      {mode === "signin" ? "Sign In" : "Create Account"}
+                      <motion.div
+                        animate={{ x: isHovered ? 5 : 0 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      >
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </motion.div>
+                    </>
+                  )}
+                </Button>
+              </motion.div>
+            </form>
+
+            {mode === "signin" && (
+              <div className="mt-4 text-center">
+                <button className="text-sm text-medical-600 hover:text-medical-700 transition-colors">
+                  Forgot your password?
+                </button>
+              </div>
+            )}
+
+            <div className="mt-6 text-center">
+              <button
+                onClick={onToggleMode}
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                {mode === "signin" 
+                  ? "Don't have an account? " 
+                  : "Already have an account? "
+                }
+                <span className="text-medical-600 font-medium hover:text-medical-700">
+                  {mode === "signin" ? "Sign up" : "Sign in"}
+                </span>
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default MedicalSignIn;
