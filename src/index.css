@@ -70,14 +70,21 @@ html {
 /* Touch-friendly improvements */
 @media (hover: none) and (pointer: coarse) {
   /* Mobile-specific styles */
-  .btn-press:hover {
-    box-shadow: none;
-    filter: none;
-  }
-  
   .btn-press:active {
     transform: scale(0.98);
     transition: transform 100ms ease;
+  }
+  
+  /* Disable hover animations on touch devices for nav-buttons */
+  .nav-button:hover {
+    transform: none !important;
+    will-change: auto;
+  }
+  
+  /* Touch feedback for nav-buttons */
+  .nav-button:active {
+    transform: scale(0.98);
+    transition: transform 150ms ease-out;
   }
   
   /* Increase touch targets on mobile */
@@ -293,17 +300,10 @@ html {
   @apply bg-medical-500 rounded-full;
 }
 
-/* Enhanced button hover animations */
+/* Enhanced button animations removed */
 .btn-press {
-  transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
-  transform-origin: center;
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
-}
-
-.btn-press:hover {
-  box-shadow: 0 8px 20px -6px hsl(var(--primary) / 0.3);
-  filter: brightness(1.05);
 }
 
 .btn-press:active {
@@ -311,15 +311,30 @@ html {
   transition: all 80ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.ease-smooth {
-  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-/* Navbar button stability improvements */
+/* Navbar button styles with soft forward hover animations */
 .nav-button {
-  backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transform-style: preserve-3d;
+  transform-origin: center;
+  backface-visibility: hidden;
+}
+
+/* Custom scale utilities for subtle animations */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+/* Smooth transition for all hover states */
+.nav-button:hover {
   will-change: transform;
+}
+
+/* Reset will-change after animation */
+.nav-button:not(:hover) {
+  will-change: auto;
+}
+
+/* Soft ease-out timing for forward animations */
+.ease-soft {
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }

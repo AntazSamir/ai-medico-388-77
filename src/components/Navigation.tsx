@@ -63,12 +63,12 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Logo - Responsive sizing */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex items-center space-x-2 transition-all duration-300 ease-smooth hover:opacity-90 py-2">
-              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-primary transition-all duration-200 hover:scale-110" />
-              <span className="text-lg sm:text-xl font-bold text-foreground transition-colors duration-200 hidden xs:block">
+            <Link to="/dashboard" className="flex items-center space-x-2 py-2 transition-all duration-200 ease-out hover:scale-105 hover:opacity-90">
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-primary transition-transform duration-200 ease-out hover:scale-110" />
+              <span className="text-lg sm:text-xl font-bold text-foreground hidden xs:block">
                 HealthTracker
               </span>
-              <span className="text-lg font-bold text-foreground transition-colors duration-200 block xs:hidden">
+              <span className="text-lg font-bold text-foreground block xs:hidden">
                 Health
               </span>
             </Link>
@@ -85,13 +85,13 @@ const Navigation = () => {
                   key={item.name}
                   to={item.href}
                   className={cn(
-                    "nav-button inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5",
+                    "nav-button inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-sm",
                     isActive
-                      ? "bg-medical-500 text-white shadow-lg translate-y-0"
-                      : "text-muted-foreground hover:text-white hover:bg-medical-500 hover:shadow-sm"
+                      ? "bg-medical-500 text-white shadow-lg"
+                      : "text-muted-foreground hover:text-foreground hover:bg-gray-50"
                   )}
                 >
-                  <Icon className="h-4 w-4 mr-2 transition-transform duration-200" />
+                  <Icon className="h-4 w-4 mr-2 transition-transform duration-200 ease-out hover:scale-110" />
                   {item.name}
                 </Link>
               );
@@ -102,9 +102,9 @@ const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="nav-button text-muted-foreground hover:text-white hover:bg-red-500 transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5 ml-4"
+              className="nav-button text-muted-foreground ml-4 transition-all duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:text-red-600 hover:bg-red-50 hover:shadow-sm"
             >
-              <LogOut className="h-4 w-4 mr-2 transition-transform duration-200" />
+              <LogOut className="h-4 w-4 mr-2 transition-transform duration-200 ease-out hover:scale-110" />
               <span className="hidden xl:inline">Logout</span>
             </Button>
           </div>
@@ -116,9 +116,9 @@ const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="nav-button text-muted-foreground hover:text-white hover:bg-red-500 transition-all duration-300 ease-smooth p-2"
+              className="nav-button text-muted-foreground p-2 transition-all duration-200 ease-out hover:scale-105 hover:text-red-600 hover:bg-red-50"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-5 w-5 transition-transform duration-200 ease-out hover:scale-110" />
             </Button>
             
             {/* Mobile Menu Toggle */}
@@ -126,13 +126,13 @@ const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="nav-button text-muted-foreground hover:text-foreground transition-all duration-300 ease-smooth p-2"
+              className="nav-button text-muted-foreground p-2 transition-all duration-200 ease-out hover:scale-105 hover:text-foreground hover:bg-gray-50"
               aria-label="Toggle mobile menu"
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className="h-6 w-6 transition-transform duration-200 ease-out hover:scale-110" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-6 w-6 transition-transform duration-200 ease-out hover:scale-110" />
               )}
             </Button>
           </div>
@@ -153,13 +153,13 @@ const Navigation = () => {
                   to={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "nav-button flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-300 ease-smooth hover:shadow-md hover:-translate-y-0.5 w-full",
+                    "nav-button flex items-center px-4 py-3 rounded-lg text-base font-medium w-full transition-all duration-200 ease-out hover:scale-102 hover:-translate-y-0.5 hover:shadow-sm",
                     isActive
-                      ? "bg-medical-500 text-white shadow-lg translate-y-0"
-                      : "text-muted-foreground hover:text-white hover:bg-medical-500 hover:shadow-sm"
+                      ? "bg-medical-500 text-white shadow-lg"
+                      : "text-muted-foreground hover:text-foreground hover:bg-gray-50"
                   )}
                 >
-                  <Icon className="h-5 w-5 mr-3 transition-transform duration-200" />
+                  <Icon className="h-5 w-5 mr-3 transition-transform duration-200 ease-out hover:scale-110" />
                   {item.name}
                 </Link>
               );
