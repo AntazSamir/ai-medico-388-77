@@ -45,7 +45,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 const Input = ({ className = "", ...props }: InputProps) => {
   return (
     <input
-      className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm text-gray-800 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`flex h-10 w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-sm text-gray-800 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-500 focus-visible:ring-offset-2 focus-visible:border-medical-500 disabled:cursor-not-allowed disabled:opacity-50 transition-colors ${className}`}
       {...props}
     />
   );
@@ -253,7 +253,8 @@ const MedicalSignIn = ({
     email: "",
     password: "",
     name: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    rememberMe: false
   });
   const [isHovered, setIsHovered] = useState(false);
 
@@ -263,16 +264,16 @@ const MedicalSignIn = ({
   };
   
   return (
-    <div className="flex w-full h-full items-center justify-center min-h-screen bg-gradient-to-br from-medical-50 to-medical-100 p-4">
+    <div className="flex w-full h-full items-center justify-center min-h-screen p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-5xl overflow-hidden rounded-2xl flex bg-white shadow-2xl"
+        className="w-full max-w-5xl overflow-hidden rounded-2xl flex bg-white/90 backdrop-blur-xl shadow-2xl border border-medical-100/50"
       >
         {/* Left side - Medical Network Map */}
         <div className="hidden md:block w-1/2 h-[700px] relative overflow-hidden border-r border-gray-100">
-          <div className="absolute inset-0 bg-gradient-to-br from-medical-50 to-medical-100">
+          <div className="absolute inset-0 bg-gradient-to-br from-medical-50/80 to-medical-100/80 backdrop-blur-sm">
             <MedicalNetworkMap />
             
             {/* Logo and text overlay */}
@@ -359,12 +360,12 @@ const MedicalSignIn = ({
             className="max-w-sm mx-auto w-full"
           >
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">
                 {mode === "signin" ? "Welcome Back" : "Create Account"}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-medical-600 text-lg">
                 {mode === "signin" 
-                  ? "Access your health dashboard" 
+                  ? "Sign in to access your health dashboard" 
                   : "Join the future of healthcare"
                 }
               </p>
@@ -391,37 +392,47 @@ const MedicalSignIn = ({
                 )}
               </AnimatePresence>
 
-              <div>
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email Address
+                </label>
                 <Input
+                  id="email"
                   type="email"
-                  placeholder="Email Address"
+                  placeholder="Enter your email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="h-12"
+                  className="h-12 border-2 border-medical-200 focus:border-medical-500 rounded-lg"
                   required
                 />
               </div>
 
-              <div className="relative">
-                <Input
-                  type={isPasswordVisible ? "text" : "password"}
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="h-12 pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  {isPasswordVisible ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={isPasswordVisible ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="h-12 pr-10 border-2 border-medical-200 focus:border-medical-500 rounded-lg"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-medical-500 hover:text-medical-600 transition-colors"
+                  >
+                    {isPasswordVisible ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <AnimatePresence mode="wait">
@@ -436,17 +447,43 @@ const MedicalSignIn = ({
                       y: { type: "spring", stiffness: 300, damping: 30 }
                     }}
                   >
-                    <Input
-                      type="password"
-                      placeholder="Confirm Password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      className="h-12"
-                      required
-                    />
+                    <div className="space-y-2">
+                      <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                        Confirm Password
+                      </label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm your password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        className="h-12 border-2 border-medical-200 focus:border-medical-500 rounded-lg"
+                        required
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {mode === "signin" && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="rememberMe"
+                      checked={formData.rememberMe}
+                      onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+                      className="h-4 w-4 text-medical-500 border-gray-300 rounded focus:ring-medical-500"
+                    />
+                    <label htmlFor="rememberMe" className="text-sm text-medical-600">
+                      Remember me
+                    </label>
+                  </div>
+                  <button type="button" className="text-sm text-medical-600 hover:text-medical-700 transition-colors">
+                    Forgot password?
+                  </button>
+                </div>
+              )}
 
               <motion.div
                 onMouseEnter={() => setIsHovered(true)}
@@ -463,7 +500,7 @@ const MedicalSignIn = ({
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 text-base font-medium"
+                  className="w-full h-12 text-base font-medium bg-medical-500 hover:bg-medical-600 text-white rounded-lg shadow-lg"
                 >
                   {isLoading ? (
                     <motion.div
@@ -488,7 +525,7 @@ const MedicalSignIn = ({
                           duration: 0.3
                         }}
                       >
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <ArrowRight className="ml-2 h-5 w-5" />
                       </motion.div>
                     </>
                   )}
@@ -496,13 +533,7 @@ const MedicalSignIn = ({
               </motion.div>
             </form>
 
-            {mode === "signin" && (
-              <div className="mt-4 text-center">
-                <button className="text-sm text-medical-600 hover:text-medical-700 transition-colors">
-                  Forgot your password?
-                </button>
-              </div>
-            )}
+
 
             <div className="mt-6 text-center">
               <button

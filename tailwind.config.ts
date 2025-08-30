@@ -57,6 +57,7 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         medical: {
+          25: "#f8fcff",
           50: "#f0f9ff",
           100: "#e0f2fe", 
           200: "#bae6fd",
