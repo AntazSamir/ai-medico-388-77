@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,133 +30,25 @@ import {
   Star
 } from "lucide-react";
 
-// Mock patient data for main user
-const mockPatient = {
-  id: "main-user",
-  name: "John Doe",
-  age: 35,
-  gender: "Male",
-  email: "john.doe@email.com",
-  phone: "+1 (555) 123-4567",
-  relationship: "Primary User",
-  bloodType: "O+",
-  allergies: ["Shellfish", "Dust"],
-  emergencyContact: "Jane Doe - (555) 987-6543",
-};
-
-// Mock family members
-const mockFamilyMembers = [
-  {
-    id: "2",
-    name: "Jane Doe",
-    age: 32,
-    gender: "Female",
-    email: "jane.doe@email.com",
-    phone: "+1 (555) 123-4568",
-    relationship: "Spouse",
-    bloodType: "A-",
-    allergies: ["Latex"],
-    emergencyContact: "John Doe - (555) 123-4567",
-  },
-  {
-    id: "3",
-    name: "Michael Doe",
-    age: 8,
-    gender: "Male",
-    email: "guardian@email.com",
-    phone: "+1 (555) 123-4567",
-    relationship: "Son",
-    bloodType: "O+",
-    allergies: ["Peanuts"],
-    emergencyContact: "John Doe - (555) 123-4567",
-  },
-  {
-    id: "4",
-    name: "Emily Doe",
-    age: 5,
-    gender: "Female",
-    email: "guardian@email.com",
-    phone: "+1 (555) 123-4567",
-    relationship: "Daughter",
-    bloodType: "A+",
-    allergies: [],
-    emergencyContact: "Jane Doe - (555) 987-6543",
-  }
-];
-
-// Mock prescriptions for all members
-const mockPrescriptions: Record<string, Prescription[]> = {
-  "main-user": [
-    {
-      id: "1",
-      medicationName: "Amoxicillin 500mg",
-      instructions: "Take 2 tablets daily with food for bacterial infection",
-      doctor: "Dr. Smith",
-      date: "2024-01-15",
-      status: "Active",
-      dosage: { morning: 1, noon: 0, afternoon: 1, night: 0 },
-      time: "8:00 AM, 6:00 PM",
-      notes: "Complete full course even if symptoms improve",
-      additionalMedicines: [
-        {
-          medicationName: "Omeprazole 20mg",
-          dosage: { morning: 1, noon: 0, afternoon: 0, night: 0 },
-          time: "Before breakfast"
-        }
-      ]
-    },
-    {
-      id: "2", 
-      medicationName: "Ibuprofen 400mg",
-      instructions: "Take as needed for pain, max 3 times daily",
-      doctor: "Dr. Johnson",
-      date: "2024-01-10",
-      status: "As Needed",
-      dosage: { morning: 1, noon: 1, afternoon: 1, night: 0 },
-      time: "As needed",
-      notes: "Do not exceed 1200mg per day"
-    }
-  ],
-  "2": [
-    {
-      id: "jane-1",
-      medicationName: "Metformin 500mg",
-      instructions: "Take twice daily with meals for diabetes management",
-      doctor: "Dr. Wilson",
-      date: "2024-01-05",
-      status: "Active",
-      dosage: { morning: 1, noon: 0, afternoon: 0, night: 1 },
-      time: "With breakfast and dinner",
-      notes: "Monitor blood sugar levels regularly"
-    }
-  ],
-  "3": [
-    {
-      id: "michael-1",
-      medicationName: "Children's Tylenol",
-      instructions: "Give as needed for fever or pain",
-      doctor: "Dr. Peterson",
-      date: "2024-01-08",
-      status: "As Needed",
-      dosage: { morning: 0, noon: 0, afternoon: 1, night: 0 },
-      time: "As needed for fever",
-      notes: "Do not exceed 4 doses in 24 hours"
-    }
-  ],
-  "4": [
-    {
-      id: "emily-1",
-      medicationName: "Children's Allergy Relief",
-      instructions: "Give once daily for seasonal allergies",
-      doctor: "Dr. Wilson",
-      date: "2023-12-20",
-      status: "Active",
-      dosage: { morning: 1, noon: 0, afternoon: 0, night: 0 },
-      time: "With breakfast",
-      notes: "Continue during allergy season"
-    }
-  ]
-};
+interface DatabasePrescription {
+  id: string;
+  doctor_name: string | null;
+  prescription_date: string | null;
+  notes: string | null;
+  created_at: string;
+  family_member_id: string | null;
+  medicines: {
+    id: string;
+    medication_name: string;
+    dosage_morning: number;
+    dosage_noon: number;
+    dosage_afternoon: number;
+    dosage_night: number;
+    instructions: string | null;
+    frequency: string | null;
+    duration: string | null;
+  }[];
+}
 
 interface FamilyMember {
   id: string;
@@ -168,16 +62,167 @@ interface FamilyMember {
 
 export default function Medications() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "age" | "relationship">("name");
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Record<string, Prescription[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // Combine main user with family members, ensuring main user is first
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to view medications.",
+          variant: "destructive"
+        });
+        navigate('/login');
+        return;
+      }
+
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      setCurrentUser({
+        id: user.id,
+        name: profile?.full_name || 'You',
+        email: user.email,
+        relationship: 'Primary User',
+        isPrimaryUser: true
+      });
+
+      // Get family members
+      const { data: familyData, error: familyError } = await supabase
+        .from('family_members')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (familyError) throw familyError;
+
+      const mappedFamilyMembers = familyData?.map(member => ({
+        id: member.id,
+        name: member.name,
+        age: member.date_of_birth ? 
+          new Date().getFullYear() - new Date(member.date_of_birth).getFullYear() : 0,
+        gender: 'Unknown',
+        relationship: member.relationship,
+        isPrimaryUser: false
+      })) || [];
+
+      setFamilyMembers(mappedFamilyMembers);
+
+      // Get prescriptions with medicines
+      const { data: prescriptionData, error: prescriptionError } = await supabase
+        .from('prescriptions')
+        .select(`
+          *,
+          medicines (*)
+        `)
+        .eq('user_id', user.id);
+
+      if (prescriptionError) throw prescriptionError;
+
+      // Transform prescriptions to match UI format
+      const transformedPrescriptions: Record<string, Prescription[]> = {};
+      
+      prescriptionData?.forEach((dbPrescription: any) => {
+        const memberId = dbPrescription.family_member_id || user.id;
+        
+        // Group medicines by prescription
+        const medicines = dbPrescription.medicines || [];
+        
+        // Create prescription for each medicine or one prescription if no medicines
+        if (medicines.length === 0) {
+          const prescription: Prescription = {
+            id: dbPrescription.id,
+            medicationName: 'No medicines listed',
+            instructions: dbPrescription.notes || 'No instructions',
+            doctor: dbPrescription.doctor_name || 'Unknown Doctor',
+            date: dbPrescription.prescription_date || dbPrescription.created_at.split('T')[0],
+            status: 'Active',
+            dosage: { morning: 0, noon: 0, afternoon: 0, night: 0 },
+            time: 'As prescribed',
+            notes: dbPrescription.notes || ''
+          };
+          
+          if (!transformedPrescriptions[memberId]) {
+            transformedPrescriptions[memberId] = [];
+          }
+          transformedPrescriptions[memberId].push(prescription);
+        } else {
+          // Create one prescription with all medicines
+          const mainMedicine = medicines[0];
+          const additionalMedicines = medicines.slice(1).map((med: any) => ({
+            medicationName: med.medication_name,
+            dosage: {
+              morning: med.dosage_morning || 0,
+              noon: med.dosage_noon || 0,
+              afternoon: med.dosage_afternoon || 0,
+              night: med.dosage_night || 0
+            },
+            time: `${med.dosage_morning || 0}-${med.dosage_noon || 0}-${med.dosage_afternoon || 0}-${med.dosage_night || 0}`
+          }));
+
+          const prescription: Prescription = {
+            id: dbPrescription.id,
+            medicationName: mainMedicine.medication_name,
+            instructions: mainMedicine.instructions || dbPrescription.notes || 'Take as prescribed',
+            doctor: dbPrescription.doctor_name || 'Unknown Doctor',
+            date: dbPrescription.prescription_date || dbPrescription.created_at.split('T')[0],
+            status: 'Active',
+            dosage: {
+              morning: mainMedicine.dosage_morning || 0,
+              noon: mainMedicine.dosage_noon || 0,
+              afternoon: mainMedicine.dosage_afternoon || 0,
+              night: mainMedicine.dosage_night || 0
+            },
+            time: `${mainMedicine.dosage_morning || 0}-${mainMedicine.dosage_noon || 0}-${mainMedicine.dosage_afternoon || 0}-${mainMedicine.dosage_night || 0}`,
+            notes: dbPrescription.notes || '',
+            additionalMedicines: additionalMedicines.length > 0 ? additionalMedicines : undefined
+          };
+          
+          if (!transformedPrescriptions[memberId]) {
+            transformedPrescriptions[memberId] = [];
+          }
+          transformedPrescriptions[memberId].push(prescription);
+        }
+      });
+
+      setPrescriptions(transformedPrescriptions);
+
+    } catch (error) {
+      console.error('Error loading medications data:', error);
+      toast({
+        title: "Error loading data",
+        description: "Failed to load medications. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Combine current user with family members
   const allMembers = [
-    { ...mockPatient, isPrimaryUser: true },
-    ...mockFamilyMembers.map(member => ({ ...member, isPrimaryUser: false }))
+    ...(currentUser ? [currentUser] : []),
+    ...familyMembers
   ];
 
   // Filter and sort members
@@ -208,11 +253,11 @@ export default function Medications() {
   };
 
   const getPrescriptionCount = (memberId: string) => {
-    return mockPrescriptions[memberId]?.length || 0;
+    return prescriptions[memberId]?.length || 0;
   };
 
   const getActivePrescriptionCount = (memberId: string) => {
-    return mockPrescriptions[memberId]?.filter(p => p.status === "Active").length || 0;
+    return prescriptions[memberId]?.filter(p => p.status === "Active").length || 0;
   };
 
   const getStatusColor = (status: string) => {
@@ -281,10 +326,19 @@ export default function Medications() {
             </DropdownMenu>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-500 mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading medications...</p>
+            </div>
+          )}
+
           {/* Family Members List */}
-          <div className="grid gap-4 sm:gap-6">
-            {filteredMembers.map((member) => {
-              const prescriptions = mockPrescriptions[member.id] || [];
+          {!loading && (
+            <div className="grid gap-4 sm:gap-6">
+              {filteredMembers.map((member) => {
+                const memberPrescriptions = prescriptions[member.id] || [];
               const totalPrescriptions = getPrescriptionCount(member.id);
               const activePrescriptions = getActivePrescriptionCount(member.id);
 
@@ -333,19 +387,19 @@ export default function Medications() {
                   </CardHeader>
                   
                   <CardContent className="pt-0">
-                    {prescriptions.length > 0 ? (
+                    {memberPrescriptions.length > 0 ? (
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="font-medium text-sm text-muted-foreground">Prescriptions</h4>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="sm" className="border-medical-200">
-                                View All ({prescriptions.length})
+                                View All ({memberPrescriptions.length})
                                 <ChevronDown className="ml-2 h-3 w-3" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-80">
-                              {prescriptions.map((prescription) => (
+                              {memberPrescriptions.map((prescription) => (
                                 <DropdownMenuItem
                                   key={prescription.id}
                                   className="cursor-pointer p-3"
@@ -376,7 +430,7 @@ export default function Medications() {
                         
                         {/* Show first 2 prescriptions directly */}
                         <div className="grid gap-2">
-                          {prescriptions.slice(0, 2).map((prescription) => (
+                          {memberPrescriptions.slice(0, 2).map((prescription) => (
                             <div
                               key={prescription.id}
                               className="p-3 rounded-lg bg-muted/30 border border-medical-100 hover:border-medical-300 cursor-pointer transition-colors"
@@ -413,9 +467,10 @@ export default function Medications() {
                     )}
                   </CardContent>
                 </Card>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Empty State */}
           {filteredMembers.length === 0 && (
