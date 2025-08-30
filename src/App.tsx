@@ -16,6 +16,8 @@ import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
 import ResetPassword from "./pages/ResetPassword";
 
+// Deployment trigger comment - Updated at 5 min interval
+
 function App() {
   const queryClient = new QueryClient();
 
