@@ -498,3 +498,12 @@ input:focus, textarea:focus, select:focus {
     transform: none !important;
   }
 }
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
