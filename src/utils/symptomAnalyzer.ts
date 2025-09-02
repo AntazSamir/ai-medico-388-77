@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 interface SymptomAnalysisResult {
   possibleConditions: Array<{
     name: string;
@@ -17,21 +19,22 @@ interface SymptomAnalysisResult {
 
 export async function analyzeSymptoms(symptoms: string): Promise<SymptomAnalysisResult> {
   try {
-    const response = await fetch('/functions/v1/analyze-symptoms', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ symptoms }),
-    });
+    const { data, error } = await supabase.functions.invoke<SymptomAnalysisResult>(
+      'analyze-symptoms',
+      {
+        body: { symptoms },
+      }
+    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to analyze symptoms');
+    if (error) {
+      throw new Error(error.message || 'Failed to analyze symptoms');
     }
 
-    const result = await response.json();
-    return result;
+    if (!data) {
+      throw new Error('No response from analysis service');
+    }
+
+    return data;
   } catch (error) {
     console.error('Error analyzing symptoms:', error);
     throw error;
