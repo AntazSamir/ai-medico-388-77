@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -29,9 +30,9 @@ serve(async (req) => {
   }
 
   try {
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY is not configured');
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OPENAI_API_KEY is not configured');
     }
 
     const { symptoms } = await req.json();
@@ -46,90 +47,73 @@ serve(async (req) => {
       );
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Analyze the following symptoms and provide a medical assessment in JSON format:
+    const systemPrompt = 'You are a careful medical assistant. Return only strict JSON. Do not include backticks or extra text.';
+    const schemaText = `{
+      "possibleConditions": [
+        { "name": "condition name", "probability": number (0-100), "description": "brief description" }
+      ],
+      "recommendedTreatments": [
+        { "treatment": "treatment name", "priority": "High" | "Medium" | "Low", "description": "treatment details" }
+      ],
+      "severity": "Mild" | "Moderate" | "Severe" | "Emergency",
+      "urgency": "how urgent medical attention is needed",
+      "disclaimer": "medical disclaimer about consulting healthcare professionals",
+      "followUpAdvice": ["advice 1", "advice 2", "advice 3"]
+    }`;
 
-                  Symptoms: "${symptoms}"
+    const body = {
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Analyze these symptoms and respond ONLY with valid JSON matching this exact schema (no markdown, no comments):\n\nSymptoms: "${symptoms}"\n\nSchema: ${schemaText}\n\nGuidelines:\n- Up to 3 most likely conditions\n- Evidence-based treatments\n- Consider severity and combinations\n- Include clear disclaimer\n- Prioritize safety and recommend professional consultation for serious symptoms` }
+      ],
+      temperature: 0.2,
+      max_tokens: 800
+    };
 
-                  Please provide analysis in this exact JSON structure:
-                  {
-                    "possibleConditions": [
-                      {
-                        "name": "condition name",
-                        "probability": number (0-100),
-                        "description": "brief description of the condition"
-                      }
-                    ],
-                    "recommendedTreatments": [
-                      {
-                        "treatment": "treatment name",
-                        "priority": "High/Medium/Low",
-                        "description": "description of the treatment"
-                      }
-                    ],
-                    "severity": "Mild/Moderate/Severe/Emergency",
-                    "urgency": "description of how urgent medical attention is needed",
-                    "disclaimer": "medical disclaimer about consulting healthcare professionals",
-                    "followUpAdvice": ["advice 1", "advice 2", "advice 3"]
-                  }
+    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
 
-                  Guidelines:
-                  - List up to 3 most likely conditions based on symptoms
-                  - Provide evidence-based treatment recommendations
-                  - Consider symptom severity and combinations
-                  - Always include appropriate medical disclaimers
-                  - Prioritize safety and recommend professional consultation for serious symptoms
-                  - Return only valid JSON, no additional text
-                  - Be thorough but concise in descriptions`
-                }
-              ]
-            }
-          ]
-        })
+    if (!aiResponse.ok) {
+      const errText = await aiResponse.text();
+      console.error('OpenAI API error:', errText);
+      throw new Error(`OpenAI API request failed: ${aiResponse.status} ${aiResponse.statusText}`);
+    }
+
+    const aiData = await aiResponse.json();
+    const content: string = aiData.choices?.[0]?.message?.content || '';
+
+    if (!content) {
+      throw new Error('No content received from OpenAI API');
+    }
+
+    let parsed: SymptomAnalysisResult | null = null;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      const match = content.match(/\{[\s\S]*\}/);
+      if (match) {
+        parsed = JSON.parse(match[0]);
       }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', errorText);
-      throw new Error(`Gemini API request failed: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    
-    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-      throw new Error('No content received from Gemini API');
+    if (!parsed) {
+      throw new Error('Failed to parse JSON from OpenAI response');
     }
 
-    const extractedText = data.candidates[0].content.parts[0].text;
-    
-    // Parse JSON from the response
-    const jsonMatch = extractedText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON found in Gemini API response');
-    }
-
-    const analysisResult: SymptomAnalysisResult = JSON.parse(jsonMatch[0]);
-    
-    // Validate and ensure required fields
-    const cleanedResult = {
-      possibleConditions: analysisResult.possibleConditions || [],
-      recommendedTreatments: analysisResult.recommendedTreatments || [],
-      severity: analysisResult.severity || 'Mild',
-      urgency: analysisResult.urgency || 'Consult a healthcare provider if symptoms persist',
-      disclaimer: analysisResult.disclaimer || 'This analysis is for informational purposes only and should not replace professional medical advice.',
-      followUpAdvice: analysisResult.followUpAdvice || []
+    const cleanedResult: SymptomAnalysisResult = {
+      possibleConditions: parsed.possibleConditions || [],
+      recommendedTreatments: parsed.recommendedTreatments || [],
+      severity: parsed.severity || 'Mild',
+      urgency: parsed.urgency || 'Consult a healthcare provider if symptoms persist',
+      disclaimer: parsed.disclaimer || 'This analysis is for informational purposes only and should not replace professional medical advice.',
+      followUpAdvice: parsed.followUpAdvice || []
     };
 
     return new Response(
@@ -139,13 +123,12 @@ serve(async (req) => {
       }
     );
 
-  } catch (error) {
-    console.error('Error in analyze-symptoms function:', error);
-    
+  } catch (error: any) {
+    console.error('Error in analyze-symptoms function (OpenAI):', error);
     return new Response(
       JSON.stringify({ 
         error: 'Failed to analyze symptoms', 
-        details: error.message 
+        details: error?.message || String(error)
       }),
       { 
         status: 500, 
