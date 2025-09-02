@@ -502,33 +502,18 @@ const MedicalSignIn = ({
                   disabled={isLoading}
                   className="w-full h-12 text-base font-medium bg-medical-500 hover:bg-medical-600 text-white rounded-lg shadow-lg"
                 >
-                  {isLoading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ 
-                        duration: 1, 
-                        repeat: Infinity, 
-                        ease: "linear" 
-                      }}
-                    >
-                      Loading...
-                    </motion.div>
-                  ) : (
-                    <>
-                      {mode === "signin" ? "Sign In" : "Create Account"}
-                      <motion.div
-                        animate={{ x: isHovered ? 5 : 0 }}
-                        transition={{ 
-                          type: "spring", 
-                          stiffness: 400, 
-                          damping: 25,
-                          duration: 0.3
-                        }}
-                      >
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </motion.div>
-                    </>
-                  )}
+                  {mode === "signin" ? "Sign In" : "Create Account"}
+                  <motion.div
+                    animate={{ x: isHovered ? 5 : 0 }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 400, 
+                      damping: 25,
+                      duration: 0.3
+                    }}
+                  >
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </motion.div>
                 </Button>
               </motion.div>
             </form>
