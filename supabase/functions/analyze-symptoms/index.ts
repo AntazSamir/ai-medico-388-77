@@ -59,7 +59,7 @@ serve(async (req) => {
     }`;
 
     const body = {
-      model: 'gpt-4',
+      model: 'gpt-4-1106-preview',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyze these symptoms and respond ONLY with valid JSON matching this exact schema (no markdown, no comments):\n\nSymptoms: "${symptoms}"\n\nSchema: ${schemaText}\n\nGuidelines:\n- Up to 3 most likely conditions\n- Evidence-based treatments\n- Consider severity and combinations\n- Include clear disclaimer\n- Prioritize safety and recommend professional consultation for serious symptoms` }
