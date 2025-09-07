@@ -121,11 +121,13 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('Error in analyze-symptoms function (OpenAI):', error);
+    const errorMessage = error?.message || String(error);
+    console.error('Error in analyze-symptoms function (OpenAI):', errorMessage);
     return new Response(
       JSON.stringify({ 
         error: 'Failed to analyze symptoms', 
-        details: error?.message || String(error)
+        details: errorMessage,
+        stack: error?.stack
       }),
       { 
         status: 500, 

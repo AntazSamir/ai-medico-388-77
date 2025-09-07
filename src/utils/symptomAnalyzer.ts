@@ -19,6 +19,8 @@ interface SymptomAnalysisResult {
 
 export async function analyzeSymptoms(symptoms: string): Promise<SymptomAnalysisResult> {
   try {
+    console.log('Calling analyze-symptoms function with:', { symptoms });
+    
     const { data, error } = await supabase.functions.invoke<SymptomAnalysisResult>(
       'analyze-symptoms',
       {
@@ -27,13 +29,16 @@ export async function analyzeSymptoms(symptoms: string): Promise<SymptomAnalysis
     );
 
     if (error) {
+      console.error('Supabase function error:', error);
       throw new Error(error.message || 'Failed to analyze symptoms');
     }
 
     if (!data) {
+      console.error('No data returned from function');
       throw new Error('No response from analysis service');
     }
 
+    console.log('Analysis result:', data);
     return data;
   } catch (error) {
     console.error('Error analyzing symptoms:', error);
