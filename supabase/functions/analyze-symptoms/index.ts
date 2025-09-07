@@ -58,8 +58,9 @@ serve(async (req) => {
       "followUpAdvice": ["advice 1", "advice 2", "advice 3"]
     }`;
 
+    console.log('Making OpenAI API request...');
     const body = {
-      model: 'gpt-4-1106-preview',
+      model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyze these symptoms and respond ONLY with valid JSON matching this exact schema (no markdown, no comments):\n\nSymptoms: "${symptoms}"\n\nSchema: ${schemaText}\n\nGuidelines:\n- Up to 3 most likely conditions\n- Evidence-based treatments\n- Consider severity and combinations\n- Include clear disclaimer\n- Prioritize safety and recommend professional consultation for serious symptoms` }
@@ -80,7 +81,18 @@ serve(async (req) => {
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error('OpenAI API error:', errText);
-      throw new Error(`OpenAI API request failed: ${aiResponse.status} ${aiResponse.statusText}`);
+      return new Response(
+        JSON.stringify({
+          error: 'OpenAI API request failed',
+          details: errText,
+          status: aiResponse.status,
+          statusText: aiResponse.statusText
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const aiData = await aiResponse.json();
