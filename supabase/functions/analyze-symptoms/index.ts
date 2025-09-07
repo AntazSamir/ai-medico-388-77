@@ -3,7 +3,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 interface SymptomAnalysisResult {
@@ -24,15 +26,44 @@ interface SymptomAnalysisResult {
 }
 
 serve(async (req) => {
+  console.log('Received request:', req.method);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { 
+      headers: corsHeaders,
+      status: 200
+    });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        status: 405,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
 
   try {
     const openAIApiKey = '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';
+    
+    let requestData;
+    try {
+      requestData = await req.json();
+      console.log('Received request data:', requestData);
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
-    const { symptoms } = await req.json();
+    const { symptoms } = requestData;
 
     if (!symptoms) {
       return new Response(
@@ -69,14 +100,30 @@ serve(async (req) => {
       max_tokens: 800
     };
 
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    console.log('Making OpenAI API request...');
+    let aiResponse;
+    try {
+      aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+    } catch (error) {
+      console.error('Network error during OpenAI API call:', error);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Network error during OpenAI API call',
+          details: error.message
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
