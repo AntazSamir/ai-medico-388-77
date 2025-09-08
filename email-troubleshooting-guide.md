@@ -12,6 +12,26 @@ After analyzing your Supabase configuration, I've identified several potential c
 - User: `rocksamir980@gmail.com`
 - Security: `STARTTLS` enabled
 - Email confirmations: **ENABLED**
+- **Sender Issue**: Emails showing as "Supabase Auth" instead of "AI Medico <rocksamir980@gmail.com>"
+
+### 2. EMAIL SENDER CONFIGURATION ISSUE 🚨
+
+**CRITICAL PROBLEM**: Emails are coming from "Supabase Auth <noreply@mail.app.supabase.io>" instead of your configured Gmail address.
+
+**ROOT CAUSE**: Production Supabase instances require SMTP configuration through the web dashboard, not just local config files.
+
+**IMMEDIATE SOLUTION**:
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard/project/lzukcmjplavokrvdocak)
+2. Navigate to Settings → Auth → SMTP Settings
+3. Configure:
+   - Enable Custom SMTP: ✓
+   - SMTP Host: smtp.gmail.com
+   - SMTP Port: 587
+   - SMTP User: rocksamir980@gmail.com
+   - SMTP Password: puqz nlaa cjoi wyts
+   - **Sender Email: rocksamir980@gmail.com**
+   - **Sender Name: AI Medico**
+4. Save configuration
 
 ### 2. Potential Issues Identified
 
