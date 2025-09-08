@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Loader2 } from "lucide-react";
+import { Lock, Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -14,6 +14,8 @@ export default function ResetPassword() {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     document.title = "Reset Password | Health Dashboard";
@@ -73,26 +75,40 @@ export default function ResetPassword() {
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="New password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10"
+                className="pl-10 pr-10"
                 required
                 minLength={8}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <Input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm new password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="pl-10"
+                className="pl-10 pr-10"
                 required
                 minLength={8}
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-3 h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
             <Button type="submit" className="w-full" disabled={updating}>
               {updating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating…</> : "Update Password"}
