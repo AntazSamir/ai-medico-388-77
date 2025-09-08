@@ -289,14 +289,18 @@ const MedicalSignIn = ({
 
     setIsResettingPassword(true);
     try {
-      // Get the current origin, ensuring it matches the dev server
+      // Get the current origin, ensuring it works in both dev and production
       const currentOrigin = window.location.origin;
       const resetUrl = `${currentOrigin}/reset-password`;
       
-      console.log('Password reset redirect URL:', resetUrl);
+      // For development, ensure we're using the correct port
+      const isDevelopment = currentOrigin.includes('localhost');
+      const finalResetUrl = isDevelopment ? resetUrl : resetUrl;
+      
+      console.log('Password reset redirect URL:', finalResetUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: resetUrl,
+        redirectTo: finalResetUrl,
       });
 
       if (error) {
