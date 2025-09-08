@@ -1,9 +1,14 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const DEPLOYMENT_TIME = new Date().toISOString();
+console.log(`Function deployment started at: ${DEPLOYMENT_TIME}`);
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 interface SymptomAnalysisResult {
@@ -24,18 +29,44 @@ interface SymptomAnalysisResult {
 }
 
 serve(async (req) => {
+  console.log('Received request:', req.method);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { 
+      headers: corsHeaders,
+      status: 200
+    });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        status: 405,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    const openAIApiKey = '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';
+    
+    let requestData;
+    try {
+      requestData = await req.json();
+      console.log('Received request data:', requestData);
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
-    const { symptoms } = await req.json();
+    const { symptoms } = requestData;
 
     if (!symptoms) {
       return new Response(
@@ -61,8 +92,9 @@ serve(async (req) => {
       "followUpAdvice": ["advice 1", "advice 2", "advice 3"]
     }`;
 
+    console.log('Making OpenAI API request...');
     const body = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyze these symptoms and respond ONLY with valid JSON matching this exact schema (no markdown, no comments):\n\nSymptoms: "${symptoms}"\n\nSchema: ${schemaText}\n\nGuidelines:\n- Up to 3 most likely conditions\n- Evidence-based treatments\n- Consider severity and combinations\n- Include clear disclaimer\n- Prioritize safety and recommend professional consultation for serious symptoms` }
@@ -71,19 +103,46 @@ serve(async (req) => {
       max_tokens: 800
     };
 
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    console.log('Making OpenAI API request...');
+    let aiResponse;
+    try {
+      aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+    } catch (error) {
+      console.error('Network error during OpenAI API call:', error);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Network error during OpenAI API call',
+          details: error.message
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error('OpenAI API error:', errText);
-      throw new Error(`OpenAI API request failed: ${aiResponse.status} ${aiResponse.statusText}`);
+      return new Response(
+        JSON.stringify({
+          error: 'OpenAI API request failed',
+          details: errText,
+          status: aiResponse.status,
+          statusText: aiResponse.statusText
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const aiData = await aiResponse.json();
@@ -124,11 +183,13 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('Error in analyze-symptoms function (OpenAI):', error);
+    const errorMessage = error?.message || String(error);
+    console.error('Error in analyze-symptoms function (OpenAI):', errorMessage);
     return new Response(
       JSON.stringify({ 
         error: 'Failed to analyze symptoms', 
-        details: error?.message || String(error)
+        details: errorMessage,
+        stack: error?.stack
       }),
       { 
         status: 500, 
