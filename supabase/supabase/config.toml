@@ -170,7 +170,7 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -180,20 +180,25 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
+# Use Gmail SMTP server
+[auth.email.smtp]
+enabled = true
+host = "smtp.gmail.com"
+port = 587
+user = "rocksamir980@gmail.com"
+pass = "puqz nlaa cjoi wyts"
+admin_email = "rocksamir980@gmail.com"
+sender_name = "AI Medico"
+security = "STARTTLS"
 # user = "apikey"
 # pass = "env(SENDGRID_API_KEY)"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Email templates configuration
+[auth.email.template.invite]
+subject = "Welcome to AI Medico"
+content_path = "./templates/test.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
