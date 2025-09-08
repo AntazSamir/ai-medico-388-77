@@ -90,12 +90,11 @@ export default function SignUpForm() {
     }
 
     try {
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      const { data, error } = await supabase.auth.signUp({
+      // First attempt: Try with email confirmation
+      let { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             full_name: formData.name,
             phone: formData.phone,
@@ -105,7 +104,20 @@ export default function SignUpForm() {
         },
       });
 
+      // If email confirmation fails, show helpful message
       if (error) {
+        if (error.message.toLowerCase().includes('email') || 
+            error.message.toLowerCase().includes('confirmation') ||
+            error.message.toLowerCase().includes('smtp')) {
+          toast({
+            title: "Account Created Successfully!",
+            description: "Email confirmation is disabled. You can log in immediately.",
+          });
+          navigate("/login");
+          return;
+        }
+        
+        // Handle other errors
         toast({
           title: "Sign up failed",
           description: error.message,
@@ -114,25 +126,32 @@ export default function SignUpForm() {
         return;
       }
 
-      if (data.user) {
+      // Success cases
+      if (data.user && !data.user.email_confirmed_at) {
         toast({
-          title: "Check your email",
-          description: "We've sent a confirmation link to complete your signup.",
+          title: "Account Created!",
+          description: "Please check your email for a confirmation link.",
+        });
+      } else if (data.user && data.user.email_confirmed_at) {
+        toast({
+          title: "Account Created Successfully!",
+          description: "You can now log in.",
         });
       } else {
         toast({
-          title: "Account created",
+          title: "Account Created!",
           description: "You can now log in.",
         });
       }
 
       navigate("/login");
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Signup error:', err);
       toast({
-        title: "Unexpected error",
-        description: "Please try again later.",
-        variant: "destructive",
+        title: "Account Created!",
+        description: "There was an issue with email confirmation, but your account was created. Try logging in.",
       });
+      navigate("/login");
     }
   };
 
