@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Confirmation Testing Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .success { border-color: #10b981; background: #f0fdf4; }
+        .error { border-color: #ef4444; background: #fef2f2; }
+        .warning { border-color: #f59e0b; background: #fffbeb; }
+        .info { border-color: #3b82f6; background: #eff6ff; }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2563eb; }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+        
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin: 5px 0;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            margin-right: 8px;
+        }
+        .checklist li.checked:before {
+            content: "✅ ";
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Email Confirmation Troubleshooting Tool</h1>
+        <p>This tool helps diagnose email delivery issues with your AI Medico signup process.</p>
+
+        <!-- Quick Checklist -->
+        <div class="test-section info">
+            <h3>📋 Quick Troubleshooting Checklist</h3>
+            <ul class="checklist">
+                <li id="check-spam">Check spam/junk/promotions folder</li>
+                <li id="check-typo">Verify email address spelling</li>
+                <li id="check-provider">Try different email provider (Gmail, Outlook, Yahoo)</li>
+                <li id="check-wait">Wait 5-10 minutes for delivery</li>
+                <li id="check-corporate">If using work email, check with IT admin</li>
+            </ul>
+            <button onclick="markAllChecked()">Mark All as Checked</button>
+        </div>
+
+        <!-- Email Test Form -->
+        <div class="test-section">
+            <h3>🧪 Test Email Delivery</h3>
+            <input type="email" id="testEmail" placeholder="Enter email address to test" />
+            <button onclick="testEmailDelivery()" id="testBtn">Send Test Confirmation Email</button>
+            <div id="testResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Configuration Check -->
+        <div class="test-section">
+            <h3>⚙️ Configuration Status</h3>
+            <button onclick="checkConfiguration()">Check Current Configuration</button>
+            <div id="configResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Gmail SMTP Troubleshooting -->
+        <div class="test-section warning">
+            <h3>📧 Gmail SMTP Issues</h3>
+            <p><strong>Most Common Issue:</strong> Gmail App Password expired or incorrect</p>
+            <div>
+                <h4>Steps to fix Gmail SMTP:</h4>
+                <ol>
+                    <li>Go to <a href="https://myaccount.google.com/security" target="_blank">Google Account Security</a></li>
+                    <li>Enable 2-Step Verification if not already enabled</li>
+                    <li>Click "App passwords"</li>
+                    <li>Generate new password for "Mail"</li>
+                    <li>Update the password in Supabase configuration</li>
+                </ol>
+                <button onclick="openGoogleSecurity()">Open Google Security Settings</button>
+            </div>
+        </div>
+
+        <!-- Alternative Solutions -->
+        <div class="test-section">
+            <h3>🔄 Alternative Solutions</h3>
+            <div>
+                <h4>If Gmail continues to fail:</h4>
+                <ul>
+                    <li><strong>SendGrid:</strong> Professional email service (recommended)</li>
+                    <li><strong>Mailgun:</strong> Developer-friendly email API</li>
+                    <li><strong>AWS SES:</strong> Amazon's email service</li>
+                </ul>
+                <button onclick="showSendGridSetup()">Show SendGrid Setup</button>
+            </div>
+        </div>
+
+        <!-- Email Provider Testing -->
+        <div class="test-section">
+            <h3>📨 Test Different Email Providers</h3>
+            <p>Test signup with these email providers to isolate the issue:</p>
+            <div>
+                <input type="email" id="gmailTest" placeholder="your.email@gmail.com" />
+                <button onclick="testWithProvider('gmail')">Test with Gmail</button>
+            </div>
+            <div>
+                <input type="email" id="outlookTest" placeholder="your.email@outlook.com" />
+                <button onclick="testWithProvider('outlook')">Test with Outlook</button>
+            </div>
+            <div>
+                <input type="email" id="yahooTest" placeholder="your.email@yahoo.com" />
+                <button onclick="testWithProvider('yahoo')">Test with Yahoo</button>
+            </div>
+            <div id="providerTestResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Debug Information -->
+        <div class="test-section info">
+            <h3>🔍 Debug Information</h3>
+            <button onclick="showDebugInfo()">Show Debug Information</button>
+            <div id="debugInfo" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './src/integrations/supabase/client.js';
+        window.supabase = supabase;
+
+        window.testEmailDelivery = async function() {
+            const email = document.getElementById('testEmail').value;
+            const resultDiv = document.getElementById('testResult');
+            const btn = document.getElementById('testBtn');
+            
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            resultDiv.textContent = 'Testing email delivery...';
+
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: 'TestPassword123!',
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/auth/callback`,
+                        data: {
+                            full_name: 'Test User',
+                            phone: '+1234567890',
+                            address: 'Test Address',
+                            age: '25',
+                        },
+                    },
+                });
+
+                if (error) {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${error.message}`;
+                } else if (data.user && !data.user.email_confirmed_at) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Success! Test user created. Confirmation email should be sent to ${email}.
+                    
+User ID: ${data.user.id}
+Email: ${data.user.email}
+Status: Confirmation required
+
+Check your email (including spam folder) for the confirmation message.`;
+                } else {
+                    resultDiv.className = 'result warning';
+                    resultDiv.textContent = `⚠️ User created but email status unclear.
+                    
+Response data: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (err) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Unexpected error: ${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Test Confirmation Email';
+            }
+        };
+
+        window.checkConfiguration = function() {
+            const resultDiv = document.getElementById('configResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            
+            const config = {
+                supabaseUrl: supabase.supabaseUrl,
+                supabaseKey: supabase.supabaseKey.substring(0, 20) + '...',
+                currentOrigin: window.location.origin,
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString()
+            };
+            
+            resultDiv.textContent = `Configuration Check:
+${JSON.stringify(config, null, 2)}
+
+✅ Supabase client initialized
+✅ Running on: ${window.location.origin}
+✅ Browser: ${navigator.userAgent.split('(')[0]}
+
+Note: SMTP configuration is server-side and not visible from client.`;
+        };
+
+        window.markAllChecked = function() {
+            document.querySelectorAll('.checklist li').forEach(li => {
+                li.classList.add('checked');
+            });
+        };
+
+        window.openGoogleSecurity = function() {
+            window.open('https://myaccount.google.com/security', '_blank');
+        };
+
+        window.showSendGridSetup = function() {
+            alert(`SendGrid Setup for Production:
+
+1. Sign up at sendgrid.com
+2. Create API key
+3. Update supabase/supabase/config.toml:
+
+[auth.email.smtp]
+enabled = true
+host = "smtp.sendgrid.net"
+port = 587
+user = "apikey"
+pass = "env(SENDGRID_API_KEY)"
+admin_email = "your-email@domain.com"
+sender_name = "AI Medico"
+
+4. Set environment variable SENDGRID_API_KEY
+5. Restart Supabase services`);
+        };
+
+        window.testWithProvider = async function(provider) {
+            const emailInput = document.getElementById(provider + 'Test');
+            const email = emailInput.value;
+            const resultDiv = document.getElementById('providerTestResult');
+            
+            if (!email) {
+                alert(`Please enter a ${provider} email address`);
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            resultDiv.textContent = `Testing with ${provider} email: ${email}...`;
+
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: 'TestPassword123!',
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/auth/callback`,
+                        data: {
+                            full_name: `Test User (${provider})`,
+                            phone: '+1234567890',
+                            address: 'Test Address',
+                            age: '25',
+                        },
+                    },
+                });
+
+                if (error) {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ ${provider} test failed: ${error.message}`;
+                } else {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ ${provider} test successful! Check ${email} for confirmation email.`;
+                }
+            } catch (err) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ ${provider} test error: ${err.message}`;
+            }
+        };
+
+        window.showDebugInfo = function() {
+            const resultDiv = document.getElementById('debugInfo');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            
+            const debugInfo = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                url: window.location.href,
+                origin: window.location.origin,
+                supabaseUrl: supabase.supabaseUrl,
+                localStorage: {
+                    supabaseAuth: localStorage.getItem('sb-lzukcmjplavokrvdocak-auth-token') ? 'Present' : 'Not found'
+                },
+                networkInfo: {
+                    onLine: navigator.onLine,
+                    connection: navigator.connection ? {
+                        effectiveType: navigator.connection.effectiveType,
+                        downlink: navigator.connection.downlink
+                    } : 'Not available'
+                }
+            };
+            
+            resultDiv.textContent = `Debug Information:
+${JSON.stringify(debugInfo, null, 2)}
+
+Common Issues:
+- Check if Docker is running (for local Supabase)
+- Verify internet connection
+- Check browser console for errors (F12)
+- Try incognito/private browsing mode`;
+        };
+    </script>
+</body>
+</html>
