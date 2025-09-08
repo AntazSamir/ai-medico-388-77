@@ -114,10 +114,15 @@ export default function SignUpForm() {
         return;
       }
 
-      if (data.user) {
+      if (data.user && !data.user.email_confirmed_at) {
         toast({
           title: "Check your email",
-          description: "We've sent a confirmation link to complete your signup.",
+          description: "We've sent a confirmation link to your email. Please check your inbox and click the link to activate your account.",
+        });
+      } else if (data.user && data.user.email_confirmed_at) {
+        toast({
+          title: "Account created",
+          description: "Your account has been created and confirmed. You can now log in.",
         });
       } else {
         toast({
