@@ -289,11 +289,18 @@ const MedicalSignIn = ({
 
     setIsResettingPassword(true);
     try {
+      // Get the current origin, ensuring it matches the dev server
+      const currentOrigin = window.location.origin;
+      const resetUrl = `${currentOrigin}/reset-password`;
+      
+      console.log('Password reset redirect URL:', resetUrl);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: resetUrl,
       });
 
       if (error) {
+        console.error('Password reset error:', error);
         toast({
           title: "Reset failed",
           description: error.message,
@@ -308,6 +315,7 @@ const MedicalSignIn = ({
         setForgotPasswordEmail("");
       }
     } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
