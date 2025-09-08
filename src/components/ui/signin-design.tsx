@@ -1,6 +1,16 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Eye, EyeOff, ArrowRight, Heart, Shield, Brain, Activity } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Heart, Shield, Brain, Activity, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Helper function to merge class names
 const cn = (...classes: string[]) => {
@@ -257,10 +267,55 @@ const MedicalSignIn = ({
     rememberMe: false
   });
   const [isHovered, setIsHovered] = useState(false);
+  const [forgotPasswordDialogOpen, setForgotPasswordDialogOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit?.(formData);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResettingPassword(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          title: "Reset failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Reset email sent",
+          description: "Check your email for password reset instructions",
+        });
+        setForgotPasswordDialogOpen(false);
+        setForgotPasswordEmail("");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
   };
   
   return (
@@ -479,9 +534,130 @@ const MedicalSignIn = ({
                       Remember me
                     </label>
                   </div>
-                  <button type="button" className="text-sm text-medical-600 hover:text-medical-700 transition-colors">
-                    Forgot password?
-                  </button>
+                  <Dialog open={forgotPasswordDialogOpen} onOpenChange={setForgotPasswordDialogOpen}>
+                    <DialogTrigger asChild>
+                      <motion.button 
+                        type="button" 
+                        className="text-sm text-medical-600 hover:text-medical-700 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      >
+                        Forgot password?
+                      </motion.button>
+                    </DialogTrigger>
+                    <AnimatePresence>
+                      {forgotPasswordDialogOpen && (
+                        <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-xl border border-medical-100 shadow-2xl rounded-2xl overflow-hidden">
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: -20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                            transition={{ 
+                              type: "spring", 
+                              stiffness: 300, 
+                              damping: 25,
+                              duration: 0.3
+                            }}
+                          >
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        <DialogHeader className="space-y-3">
+                          <DialogTitle className="flex items-center gap-3 text-xl font-semibold text-gray-900">
+                            <motion.div 
+                              className="p-2 bg-medical-100 rounded-lg"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
+                            >
+                              <Mail className="h-5 w-5 text-medical-500" />
+                            </motion.div>
+                            Reset Password
+                          </DialogTitle>
+                          <DialogDescription className="text-gray-600 leading-relaxed">
+                            Enter your email address and we'll send you a link to reset your password.
+                          </DialogDescription>
+                        </DialogHeader>
+                      </motion.div>
+                      <motion.div 
+                        className="space-y-6 py-4"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15, duration: 0.3 }}
+                      >
+                        <div className="space-y-3">
+                          <label htmlFor="forgot-email" className="text-sm font-semibold text-gray-700">
+                            Email Address
+                          </label>
+                          <Input
+                            id="forgot-email"
+                            type="email"
+                            placeholder="Enter your email address"
+                            value={forgotPasswordEmail}
+                            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                            className="h-12 border-2 border-medical-200 focus:border-medical-500 focus:ring-2 focus:ring-medical-500/20 rounded-lg transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                          />
+                        </div>
+                        <motion.div 
+                          className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-3 pt-2"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2, duration: 0.3 }}
+                        >
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                          >
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setForgotPasswordDialogOpen(false);
+                                setForgotPasswordEmail("");
+                              }}
+                              disabled={isResettingPassword}
+                              className="h-9 px-4 text-sm border-2 border-medical-200 text-medical-600 hover:bg-medical-50 hover:border-medical-300 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                            >
+                              Cancel
+                            </Button>
+                          </motion.div>
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                          >
+                            <Button
+                              onClick={handleForgotPassword}
+                              disabled={isResettingPassword || !forgotPasswordEmail}
+                              className="h-9 px-4 text-sm bg-gradient-to-r from-medical-500 to-medical-600 hover:from-medical-600 hover:to-medical-700 text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg"
+                            >
+                              {isResettingPassword ? (
+                                <>
+                                  <motion.div 
+                                    className="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                  />
+                                  Sending...
+                                </>
+                              ) : (
+                                <>
+                                  <Mail className="mr-2 h-3 w-3" />
+                                  Send Reset Link
+                                </>
+                              )}  
+                            </Button>
+                          </motion.div>
+                        </motion.div>
+                      </motion.div>
+                          </motion.div>
+                        </DialogContent>
+                      )}
+                    </AnimatePresence>
+                  </Dialog>
                 </div>
               )}
 

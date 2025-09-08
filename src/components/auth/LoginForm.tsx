@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { LogIn, Brain, Shield, ActivitySquare, Eye, EyeOff } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { LogIn, Brain, Shield, ActivitySquare, Eye, EyeOff, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function LoginForm() {
@@ -13,6 +21,8 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [forgotPasswordDialogOpen, setForgotPasswordDialogOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -51,10 +61,10 @@ export default function LoginForm() {
   };
 
   const handleForgotPassword = async () => {
-    if (!email) {
+    if (!forgotPasswordEmail) {
       toast({
         title: "Email required",
-        description: "Please enter your email address first",
+        description: "Please enter your email address",
         variant: "destructive",
       });
       return;
@@ -62,7 +72,7 @@ export default function LoginForm() {
 
     setIsResettingPassword(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
@@ -77,6 +87,8 @@ export default function LoginForm() {
           title: "Reset email sent",
           description: "Check your email for password reset instructions",
         });
+        setForgotPasswordDialogOpen(false);
+        setForgotPasswordEmail("");
       }
     } catch (error) {
       toast({
@@ -204,14 +216,76 @@ export default function LoginForm() {
               </form>
 
               <div className="space-y-3">
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  disabled={isResettingPassword}
-                  className="w-full text-sm text-medical-600 hover:text-medical-700 font-medium transition-colors disabled:opacity-50"
-                >
-                  {isResettingPassword ? "Sending reset email..." : "Forgot your password?"}
-                </button>
+                <Dialog open={forgotPasswordDialogOpen} onOpenChange={setForgotPasswordDialogOpen}>
+                  <DialogTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        console.log('Forgot password button clicked');
+                        setForgotPasswordDialogOpen(true);
+                      }}
+                      className="w-full text-sm text-medical-600 hover:text-medical-700 font-medium transition-colors"
+                    >
+                      Forgot your password?
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Mail className="h-5 w-5 text-medical-500" />
+                        Reset Password
+                      </DialogTitle>
+                      <DialogDescription>
+                        Enter your email address and we'll send you a link to reset your password.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <label htmlFor="forgot-email" className="text-sm font-medium text-medical-700">
+                          Email Address
+                        </label>
+                        <Input
+                          id="forgot-email"
+                          type="email"
+                          placeholder="Enter your email address"
+                          value={forgotPasswordEmail}
+                          onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                          className="border-medical-200 focus:border-medical-500 focus:ring-medical-500"
+                        />
+                      </div>
+                      <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setForgotPasswordDialogOpen(false);
+                            setForgotPasswordEmail("");
+                          }}
+                          disabled={isResettingPassword}
+                          className="border-medical-200 text-medical-600 hover:bg-medical-50"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleForgotPassword}
+                          disabled={isResettingPassword || !forgotPasswordEmail}
+                          className="bg-medical-500 hover:bg-medical-600 text-white"
+                        >
+                          {isResettingPassword ? (
+                            <>
+                              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="mr-2 h-4 w-4" />
+                              Send Reset Link
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <div className="text-center pt-4 border-t border-medical-100">
