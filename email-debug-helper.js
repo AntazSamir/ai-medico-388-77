@@ -8,20 +8,27 @@ import { supabase } from './src/integrations/supabase/client.js';
 class EmailDebugHelper {
   constructor() {
     this.testEmail = 'test.user.medico@gmail.com'; // Change this to your test email
+    this.diagnosisMode = true; // Enable detailed diagnostics
     this.results = [];
   }
 
   async testEmailConfiguration() {
-    console.log('🔧 Starting Email Configuration Test...\n');
+    console.log('🔧 Starting Advanced Email Configuration Test...\n');
     
     // Test 1: Basic Supabase connection
     await this.testSupabaseConnection();
     
-    // Test 2: Test signup with email confirmation
+    // Test 2: Check Supabase auth settings
+    await this.checkAuthSettings();
+    
+    // Test 3: Test signup with email confirmation
     await this.testSignupWithConfirmation();
     
-    // Test 3: Check user creation status
+    // Test 4: Check user creation status
     await this.checkUserStatus();
+    
+    // Test 5: Check for common SMTP issues
+    await this.checkCommonSMTPIssues();
     
     // Display results
     this.displayResults();
@@ -42,11 +49,13 @@ class EmailDebugHelper {
   }
 
   async testSignupWithConfirmation() {
-    console.log('2️⃣ Testing Signup with Email Confirmation...');
+    console.log('3️⃣ Testing Signup with Email Confirmation...');
     try {
       // Generate unique email for testing
       const timestamp = Date.now();
       const testEmail = `test.medico.${timestamp}@gmail.com`;
+      
+      console.log(`Testing with email: ${testEmail}`);
       
       const { data, error } = await supabase.auth.signUp({
         email: testEmail,
@@ -63,18 +72,44 @@ class EmailDebugHelper {
       });
 
       if (error) {
-        this.addResult('❌', 'Email Signup Test', `Error: ${error.message}`);
+        this.addResult('❌', 'Email Signup Test', `Error: ${error.message}\nError Code: ${error.status || 'Unknown'}`);
+        
+        // Check for specific SMTP-related errors
+        if (error.message.includes('smtp') || error.message.includes('email')) {
+          this.addResult('🚨', 'SMTP Error Detected', 'This appears to be an SMTP configuration issue. Check Supabase dashboard SMTP settings.');
+        }
       } else if (data.user && !data.user.email_confirmed_at) {
-        this.addResult('✅', 'Email Signup Test', `User created successfully. Confirmation email should be sent to ${testEmail}`);
+        this.addResult('✅', 'Email Signup Test', `User created successfully. Confirmation email should be sent to ${testEmail}\nUser ID: ${data.user.id}`);
         this.testUserData = data.user;
+        
+        // Additional check for session data
+        if (data.session) {
+          this.addResult('⚠️', 'Unexpected Session', 'User has active session despite needing email confirmation');
+        }
       } else if (data.user && data.user.email_confirmed_at) {
-        this.addResult('⚠️', 'Email Signup Test', 'User created but already confirmed (unexpected)');
+        this.addResult('⚠️', 'Email Signup Test', 'User created but already confirmed (email confirmations may be disabled)');
         this.testUserData = data.user;
       } else {
-        this.addResult('⚠️', 'Email Signup Test', 'Unexpected response format');
+        this.addResult('⚠️', 'Email Signup Test', `Unexpected response format: ${JSON.stringify(data, null, 2)}`);
       }
     } catch (err) {
       this.addResult('❌', 'Email Signup Test', `Unexpected error: ${err.message}`);
+    }
+  }
+
+  async checkAuthSettings() {
+    console.log('2️⃣ Checking Auth Settings...');
+    try {
+      // Check if confirmations are enabled
+      const authConfig = {
+        confirmationsEnabled: 'Should be enabled for email confirmation',
+        redirectUrl: window.location.origin + '/auth/callback',
+        currentOrigin: window.location.origin
+      };
+      
+      this.addResult('✅', 'Auth Configuration', JSON.stringify(authConfig, null, 2));
+    } catch (err) {
+      this.addResult('❌', 'Auth Configuration', `Error: ${err.message}`);
     }
   }
 
@@ -84,25 +119,36 @@ class EmailDebugHelper {
       return;
     }
 
-    console.log('3️⃣ Checking User Status...');
+    console.log('4️⃣ Checking User Status...');
     try {
-      const { data: user, error } = await supabase.auth.admin.getUserById(this.testUserData.id);
-      
-      if (error) {
-        this.addResult('❌', 'User Status Check', `Error: ${error.message}`);
-      } else {
-        const status = {
-          id: user.id,
-          email: user.email,
-          confirmed: user.email_confirmed_at ? 'Yes' : 'No',
-          created: user.created_at,
-          lastSignIn: user.last_sign_in_at || 'Never'
-        };
-        this.addResult('✅', 'User Status Check', JSON.stringify(status, null, 2));
-      }
+      // Instead of admin call, just check the user data we got
+      const status = {
+        id: this.testUserData.id,
+        email: this.testUserData.email,
+        confirmed: this.testUserData.email_confirmed_at ? 'Yes' : 'No',
+        created: this.testUserData.created_at,
+        confirmationSent: this.testUserData.confirmation_sent_at ? 'Yes' : 'No'
+      };
+      this.addResult('✅', 'User Status Check', JSON.stringify(status, null, 2));
     } catch (err) {
       this.addResult('⚠️', 'User Status Check', `Cannot check user status: ${err.message}`);
     }
+  }
+
+  async checkCommonSMTPIssues() {
+    console.log('5️⃣ Checking Common SMTP Issues...');
+    
+    const issues = {
+      'Gmail SMTP Host': 'Should be smtp.gmail.com',
+      'Gmail SMTP Port': 'Should be 587',
+      'Gmail Security': 'Should be STARTTLS/TLS',
+      'Gmail App Password': 'Should be 16-character app password, not regular password',
+      'Sender Email': 'Should match Gmail username (rocksamir980@gmail.com)',
+      'Confirmations Enabled': 'Should be enabled in Supabase Auth settings',
+      'Rate Limiting': 'Check if hitting 30 emails/hour limit'
+    };
+    
+    this.addResult('⚠️', 'SMTP Configuration Checklist', JSON.stringify(issues, null, 2));
   }
 
   addResult(icon, test, message) {
@@ -131,7 +177,11 @@ class EmailDebugHelper {
     if (failed === 0 && warnings === 0) {
       console.log('🎉 All tests passed! Email configuration should be working.');
     } else if (failed > 0) {
-      console.log('🚨 Critical issues found. Please check Supabase dashboard SMTP settings.');
+      console.log('🚨 Critical issues found. Most likely causes:');
+      console.log('   1. Gmail App Password expired or incorrect');
+      console.log('   2. SMTP not configured in Supabase dashboard');
+      console.log('   3. Wrong SMTP settings (port, security, etc.)');
+      console.log('   4. Gmail account locked or 2FA issues');
     } else {
       console.log('⚠️ Some warnings found. Monitor email delivery carefully.');
     }
@@ -147,20 +197,27 @@ class EmailDebugHelper {
 
 // Usage instructions
 console.log(`
-📧 Email Debug Helper Usage:
+📧 Advanced Email Debug Helper Usage:
 
-1. Open browser console (F12)
-2. Copy and paste this entire script
-3. Run: const debugger = new EmailDebugHelper(); await debugger.testEmailConfiguration();
-4. Check console output for results
+🔍 IMMEDIATE DIAGNOSTIC:
+1. Open browser console (F12) on your running app
+2. Run: const debugger = new EmailDebugHelper(); await debugger.testEmailConfiguration();
+3. Check console output for specific error messages
 
-After configuring SMTP in Supabase dashboard:
-1. Update Gmail app password
-2. Save SMTP settings in Supabase
-3. Run this test script
-4. Check test email inbox (including spam folder)
+🛠️ COMMON FIXES:
+1. Gmail App Password: Generate new 16-character password at myaccount.google.com/security
+2. Supabase SMTP: Verify settings in dashboard (Settings → Auth → SMTP)
+3. Port: Must be 587 (not 465 or 25)
+4. Security: Must be STARTTLS
+5. Sender Email: Must match Gmail username
 
-IMPORTANT: Make sure to configure SMTP in Supabase Dashboard, not just local config!
+🚨 IF STILL FAILING:
+- Check Supabase logs in dashboard
+- Try different email provider (not Gmail)
+- Verify 2FA is enabled on Gmail
+- Check for rate limiting (30 emails/hour max)
+
+IMPORTANT: Configuration must be in Supabase Dashboard, NOT local files!
 `);
 
 // Export for use

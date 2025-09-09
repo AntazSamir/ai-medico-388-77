@@ -18,7 +18,7 @@
    SMTP Host: smtp.gmail.com
    SMTP Port: 587
    SMTP Username: rocksamir980@gmail.com
-   SMTP Password: puqz nlaa cjoi wyts
+   SMTP Password: dznb rinc wxjt cwgp
    Sender Name: AI Medico
    Sender Email: rocksamir980@gmail.com
    ```
