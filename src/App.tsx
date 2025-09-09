@@ -18,6 +18,7 @@ import AuthCallback from "./pages/AuthCallback";
 import ResetPassword from "./pages/ResetPassword";
 import BackgroundShowcase from "./pages/BackgroundShowcase";
 import DebugBackground from "./pages/DebugBackground";
+import EmailDebug from "./pages/EmailDebug";
 
 // Deployment trigger comment - Updated at 5 min interval
 
@@ -39,6 +40,7 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/background-showcase" element={<BackgroundShowcase />} />
               <Route path="/debug-background" element={<DebugBackground />} />
+              <Route path="/debug/email" element={<EmailDebug />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/symptoms" element={<Symptoms />} />
               <Route path="/profile" element={<Profile />} />
