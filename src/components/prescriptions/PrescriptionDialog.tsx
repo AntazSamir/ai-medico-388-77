@@ -40,8 +40,6 @@ interface PrescriptionDialogProps {
 }
 
 export function PrescriptionDialog({ prescription, isOpen, onClose, memberId, memberName }: PrescriptionDialogProps) {
-  if (!prescription) return null;
-
   // Track when prescription is viewed
   useEffect(() => {
     if (isOpen && prescription) {
@@ -62,6 +60,8 @@ export function PrescriptionDialog({ prescription, isOpen, onClose, memberId, me
       );
     }
   }, [isOpen, prescription, memberId, memberName]);
+
+  if (!prescription) return null;
 
   const getStatusConfig = (status: string) => {
     switch (status) {

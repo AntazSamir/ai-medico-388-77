@@ -9,7 +9,7 @@ export interface EmailSenderTestResult {
   expectedSender: string;
   actualSender?: string;
   message: string;
-  userDetails?: any;
+  userDetails?: { id: string; email: string; name?: string };
 }
 
 export const testEmailSender = async (testEmail: string): Promise<EmailSenderTestResult> => {
@@ -92,7 +92,7 @@ Next steps:
         message: 'No user data returned from signup',
       };
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       success: false,
       userCreated: false,

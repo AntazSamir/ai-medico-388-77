@@ -167,7 +167,7 @@ type MedicalRecord = {
   summary: string;
   doctor: string;
   status: string;
-  files?: any[];
+  files?: File[];
 };
 
 type FamilyMember = {
@@ -284,7 +284,7 @@ Patient Information:
     return <Paperclip className="h-4 w-4" />;
   };
 
-  const handleAddFamilyMember = (familyMember: any) => {
+  const handleAddFamilyMember = (familyMember: Omit<FamilyMember, 'id'>) => {
     console.log('New family member:', familyMember);
     
     // Generate a unique ID for the new family member using timestamp

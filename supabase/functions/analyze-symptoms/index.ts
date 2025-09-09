@@ -182,7 +182,7 @@ serve(async (req) => {
       }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     const errorMessage = error?.message || String(error);
     console.error('Error in analyze-symptoms function (OpenAI):', errorMessage);
     return new Response(

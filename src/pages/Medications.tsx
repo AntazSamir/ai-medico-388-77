@@ -71,7 +71,7 @@ export default function Medications() {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [prescriptions, setPrescriptions] = useState<Record<string, Prescription[]>>({});
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -142,7 +142,7 @@ export default function Medications() {
       // Transform prescriptions to match UI format
       const transformedPrescriptions: Record<string, Prescription[]> = {};
       
-      prescriptionData?.forEach((dbPrescription: any) => {
+      prescriptionData?.forEach((dbPrescription: { family_member_id?: string; medicines?: unknown[] }) => {
         const memberId = dbPrescription.family_member_id || user.id;
         
         // Group medicines by prescription
@@ -169,7 +169,7 @@ export default function Medications() {
         } else {
           // Create one prescription with all medicines
           const mainMedicine = medicines[0];
-          const additionalMedicines = medicines.slice(1).map((med: any) => ({
+          const additionalMedicines = medicines.slice(1).map((med: { medication_name: string; dosage: unknown; time: string }) => ({
             medicationName: med.medication_name,
             dosage: {
               morning: med.dosage_morning || 0,

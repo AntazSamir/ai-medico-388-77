@@ -247,7 +247,7 @@ const MedicalNetworkMap = () => {
 
 interface MedicalSignInProps {
   mode?: "signin" | "signup";
-  onSubmit?: (data: { email: string; password: string; [key: string]: any }) => void;
+  onSubmit?: (data: { email: string; password: string; [key: string]: unknown }) => void;
   onToggleMode?: () => void;
   isLoading?: boolean;
 }

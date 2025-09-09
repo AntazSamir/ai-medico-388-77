@@ -91,7 +91,7 @@ export default function SignUpForm() {
 
     try {
       // First attempt: Try with email confirmation
-      let { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -145,7 +145,7 @@ export default function SignUpForm() {
       }
 
       navigate("/login");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Signup error:', err);
       toast({
         title: "Account Created!",
