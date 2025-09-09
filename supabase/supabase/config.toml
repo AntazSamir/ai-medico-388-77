@@ -184,12 +184,12 @@ otp_expiry = 3600
 [auth.email.smtp]
 enabled = true
 host = "smtp.gmail.com"
-port = 587
+port = 465
 user = "rocksamir980@gmail.com"
 pass = "dznb rinc wxjt cwgp"
 admin_email = "rocksamir980@gmail.com"
 sender_name = "AI Medico"
-security = "STARTTLS"
+security = "SSL"
 # Ensure emails come from your Gmail address
 from_email = "rocksamir980@gmail.com"
 from_name = "AI Medico"

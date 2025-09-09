@@ -16,7 +16,7 @@
 4. **Enter these EXACT settings**:
    ```
    SMTP Host: smtp.gmail.com
-   SMTP Port: 587
+   SMTP Port: 465
    SMTP Username: rocksamir980@gmail.com
    SMTP Password: dznb rinc wxjt cwgp
    Sender Name: AI Medico
@@ -100,7 +100,7 @@ User Signup → Supabase Production → Gmail SMTP → User Inbox ✅
 #### Step 1: Check Gmail Configuration
 ```bash
 # Verify Gmail SMTP is accessible
-telnet smtp.gmail.com 587
+telnet smtp.gmail.com 465
 ```
 
 #### Step 2: Test with Different Email Providers
@@ -130,7 +130,7 @@ The confirmation template exists and looks correct:
 [auth.email.smtp]
 enabled = true
 host = "smtp.gmail.com"
-port = 587
+port = 465
 user = "rocksamir980@gmail.com"
 pass = "NEW_APP_PASSWORD_HERE"
 ```
