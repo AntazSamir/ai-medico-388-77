@@ -50,7 +50,16 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = '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';
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing OPENAI_API_KEY' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
     let requestData;
     try {
@@ -94,7 +103,7 @@ serve(async (req) => {
 
     console.log('Making OpenAI API request...');
     const body = {
-      model: 'gpt-3.5-turbo',
+      model: Deno.env.get('OPENAI_MODEL') || 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyze these symptoms and respond ONLY with valid JSON matching this exact schema (no markdown, no comments):\n\nSymptoms: "${symptoms}"\n\nSchema: ${schemaText}\n\nGuidelines:\n- Up to 3 most likely conditions\n- Evidence-based treatments\n- Consider severity and combinations\n- Include clear disclaimer\n- Prioritize safety and recommend professional consultation for serious symptoms` }
@@ -183,13 +192,13 @@ serve(async (req) => {
     );
 
   } catch (error: unknown) {
-    const errorMessage = error?.message || String(error);
+    const errorMessage = (error as any)?.message || String(error);
     console.error('Error in analyze-symptoms function (OpenAI):', errorMessage);
     return new Response(
       JSON.stringify({ 
         error: 'Failed to analyze symptoms', 
         details: errorMessage,
-        stack: error?.stack
+        stack: (error as any)?.stack
       }),
       { 
         status: 500, 
