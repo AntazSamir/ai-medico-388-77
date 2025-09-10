@@ -1,5 +1,12 @@
+// @ts-ignore - URL imports are resolved by the Deno runtime during deploy
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+// @ts-ignore - URL imports are resolved by the Deno runtime during deploy
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+// Declare the Deno global for local TypeScript tooling
+declare const Deno: {
+  env: { get: (name: string) => string | undefined };
+};
 
 const DEPLOYMENT_TIME = new Date().toISOString();
 console.log(`Function deployment started at: ${DEPLOYMENT_TIME}`);
