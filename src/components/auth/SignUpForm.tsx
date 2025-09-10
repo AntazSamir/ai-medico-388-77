@@ -105,20 +105,8 @@ export default function SignUpForm() {
         },
       });
 
-      // If email confirmation fails, show helpful message
+      // Handle signup errors
       if (error) {
-        if (error.message.toLowerCase().includes('email') || 
-            error.message.toLowerCase().includes('confirmation') ||
-            error.message.toLowerCase().includes('smtp')) {
-          toast({
-            title: "Account Created Successfully!",
-            description: "Email confirmation is disabled. You can log in immediately.",
-          });
-          navigate("/login");
-          return;
-        }
-        
-        // Handle other errors
         toast({
           title: "Sign up failed",
           description: error.message,
