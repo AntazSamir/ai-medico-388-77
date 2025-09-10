@@ -70,31 +70,29 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🏥 AI Medico</div>
-            <h1 class="title">Reset Your Password</h1>
+            <div class="logo">AI Medico</div>
+            <h1 class="title">Reset your password</h1>
         </div>
-        
+
         <p>We received a request to reset the password for your AI Medico account.</p>
-        
-        <p>Click the button below to create a new password:</p>
-        
+
+        <p>Use the button below to choose a new password:</p>
+
         <div style="text-align: center;">
             <a href="{{ .ConfirmationURL }}" class="button">
-                🔐 Reset Password
+                Reset password
             </a>
         </div>
-        
-        <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+
+        <p>If the button doesn't work, copy and paste this link into your browser:</p>
         <p class="link">{{ .ConfirmationURL }}</p>
-        
-        <div class="warning">
-            <p><strong>⚠️ Security Notice:</strong> This password reset link will expire in 1 hour for your security.</p>
-        </div>
-        
+
+        <p style="color:#6b7280;font-size:14px;margin-top:16px;">This link works for 1 hour.</p>
+
         <div class="footer">
-            <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
-            <p>For security reasons, please don't share this email with anyone.</p>
-            <p>Need help? Contact our support team at rocksamir980@gmail.com</p>
+            <p>If you didn’t request this, you can ignore this email and your password will stay the same.</p>
+            <p>Questions? Contact support at <a class="link" href="mailto:rocksamir980@gmail.com">rocksamir980@gmail.com</a>.</p>
+            <p style="margin-top:8px;">AI Medico</p>
         </div>
     </div>
 </body>
