@@ -102,8 +102,16 @@ serve(async (req) => {
     }`;
 
     console.log('Making OpenAI API request...');
+    const isOpenRouterKey = openAIApiKey.startsWith('sk-or-');
+    const apiUrl = isOpenRouterKey 
+      ? 'https://openrouter.ai/api/v1/chat/completions'
+      : 'https://api.openai.com/v1/chat/completions';
+    const model = isOpenRouterKey 
+      ? (Deno.env.get('OPENROUTER_MODEL') || 'openai/gpt-4o-mini')
+      : (Deno.env.get('OPENAI_MODEL') || 'gpt-4o-mini');
+
     const body = {
-      model: Deno.env.get('OPENAI_MODEL') || 'gpt-4o-mini',
+      model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyze these symptoms and respond ONLY with valid JSON matching this exact schema (no markdown, no comments):\n\nSymptoms: "${symptoms}"\n\nSchema: ${schemaText}\n\nGuidelines:\n- Up to 3 most likely conditions\n- Evidence-based treatments\n- Consider severity and combinations\n- Include clear disclaimer\n- Prioritize safety and recommend professional consultation for serious symptoms` }
@@ -112,15 +120,23 @@ serve(async (req) => {
       max_tokens: 800
     };
 
-    console.log('Making OpenAI API request...');
+    console.log('Making AI API request to', apiUrl);
     let aiResponse;
     try {
-      aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      };
+      // Optional but recommended for OpenRouter
+      if (isOpenRouterKey) {
+        const referer = Deno.env.get('OPENROUTER_SITE_URL');
+        const title = Deno.env.get('OPENROUTER_APP_NAME') || 'Medico App';
+        if (referer) headers['HTTP-Referer'] = referer;
+        headers['X-Title'] = title;
+      }
+      aiResponse = await fetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(body),
       });
     } catch (error) {
