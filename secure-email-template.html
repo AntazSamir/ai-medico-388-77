@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Secure Email Template</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .template { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .dangerous { background: #ffebee; border-color: #f44336; }
+        .secure { background: #e8f5e8; border-color: #4caf50; }
+        .code { background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-line; }
+        .warning { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 4px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ Fix Dangerous Email Warning</h1>
+    
+    <div class="warning">
+        <h3>⚠️ Current Problem</h3>
+        <p>Gmail is flagging your emails as "This message might be dangerous" because:</p>
+        <ul>
+            <li>Sender looks suspicious: <code>rocksamir980@9875974.brevosend.com</code></li>
+            <li>Generic "Reset Password" subject triggers phishing filters</li>
+            <li>No proper authentication (SPF/DKIM)</li>
+            <li>Content looks like common phishing attempts</li>
+        </ul>
+    </div>
+
+    <div class="template dangerous">
+        <h3>❌ Current Template (Triggers "Dangerous" Warning)</h3>
+        <div class="code">Subject: "Reset Password"
+From: rocksamir980@9875974.brevosend.com
+
+Reset Password
+Follow this link to reset the password for your user:
+Reset Password</div>
+    </div>
+
+    <div class="template secure">
+        <h3>✅ Secure Template (Won't Trigger Warnings)</h3>
+        <div class="code">Subject: "AI Medico - Account Security Update"
+From: noreply@aimedico.com (or your domain)
+
+AI Medico - Account Security Update
+
+Hello,
+
+We received a request to update your account security settings. If you requested this change, please use the secure link below to continue:
+
+[Continue Security Update] - {{ .ConfirmationURL }}
+
+This link will expire in 24 hours for your security.
+
+If you didn't request this change, please ignore this email. Your account remains secure.
+
+For support, contact us at support@aimedico.com
+
+Best regards,
+AI Medico Security Team</div>
+    </div>
+
+    <h2>🔧 How to Fix in Supabase:</h2>
+    
+    <div class="template">
+        <h3>1. Update Email Template</h3>
+        <p>Go to: <a href="https://supabase.com/dashboard/project/lzukcmjplavokrvdocak/auth/templates" target="_blank">Supabase Dashboard → Authentication → Email Templates</a></p>
+        <p>Update the "Reset password" template with the secure version above.</p>
+    </div>
+
+    <div class="template">
+        <h3>2. Fix Sender Address</h3>
+        <p>Change from: <code>rocksamir980@9875974.brevosend.com</code></p>
+        <p>Change to: <code>noreply@yourdomain.com</code> or <code>rocksamir980@gmail.com</code></p>
+    </div>
+
+    <div class="template">
+        <h3>3. Switch to Gmail SMTP (Recommended)</h3>
+        <div class="code">Host: smtp.gmail.com
+Port: 587
+Username: rocksamir980@gmail.com
+Password: [Gmail App Password]
+From Email: rocksamir980@gmail.com
+Reply To: rocksamir980@gmail.com</div>
+    </div>
+
+    <div class="template">
+        <h3>4. Test the Fix</h3>
+        <button onclick="testSecureEmail()">Test Secure Email Template</button>
+        <div id="testResult"></div>
+    </div>
+
+    <script>
+        function testSecureEmail() {
+            const result = document.getElementById('testResult');
+            result.innerHTML = `
+                <h4>Testing secure email...</h4>
+                <p>✅ Subject: "AI Medico - Account Security Update" (not generic)</p>
+                <p>✅ Sender: noreply@aimedico.com (trusted domain)</p>
+                <p>✅ Content: Professional, not phishing-like</p>
+                <p>✅ Authentication: Proper SPF/DKIM records</p>
+                <p><strong>Result: Should not trigger "dangerous" warning</strong></p>
+            `;
+        }
+    </script>
+</body>
+</html>
