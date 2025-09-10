@@ -50,7 +50,8 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const rawKey = Deno.env.get('OPENAI_API_KEY') || '';
+    const openAIApiKey = rawKey.trim();
     if (!openAIApiKey) {
       return new Response(
         JSON.stringify({ error: 'Missing OPENAI_API_KEY' }),
@@ -102,13 +103,14 @@ serve(async (req) => {
     }`;
 
     console.log('Making OpenAI API request...');
-    const isOpenRouterKey = openAIApiKey.startsWith('sk-or-');
+    const isOpenRouterKey = /sk-or-/i.test(openAIApiKey);
     const apiUrl = isOpenRouterKey 
       ? 'https://openrouter.ai/api/v1/chat/completions'
       : 'https://api.openai.com/v1/chat/completions';
     const model = isOpenRouterKey 
       ? (Deno.env.get('OPENROUTER_MODEL') || 'openai/gpt-4o-mini')
       : (Deno.env.get('OPENAI_MODEL') || 'gpt-4o-mini');
+    console.log('AI endpoint selected:', apiUrl, 'model:', model);
 
     const body = {
       model,
