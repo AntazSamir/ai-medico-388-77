@@ -42,7 +42,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { ExtractedPrescriptionData } from "@/utils/prescriptionExtractor";
-import { ExtractedReportData } from "@/utils/medicalReportExtractor";
+import { UniversalMedicalReport } from "@/types/medicalReport";
 
 interface FamilyMember {
   id?: string;
@@ -64,7 +64,7 @@ interface FamilyMember {
     type: string;
     date: string;
     file?: File;
-    extractedData?: ExtractedReportData;
+    extractedData?: UniversalMedicalReport;
   }>;
   notes?: string;
 }
@@ -298,7 +298,7 @@ export default function AddFamilyMemberDialog({
     });
   };
 
-  const handleReportExtracted = (reportData: ExtractedReportData, imageUrl?: string) => {
+  const handleReportExtracted = (reportData: UniversalMedicalReport, imageUrl?: string) => {
     if (selectedReportIndex !== null) {
       // Update existing report with extracted data
       const updatedReports = [...familyMember.medicalReports];

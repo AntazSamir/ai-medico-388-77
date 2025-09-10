@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirmation Email Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .test { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Confirmation Email Test</h1>
+    
+    <div class="test">
+        <h3>Test 1: New Email Signup</h3>
+        <input type="email" id="newEmail" placeholder="Enter NEW email address" value="">
+        <button onclick="testNewSignup()">Test New Signup</button>
+        <div id="newResult"></div>
+    </div>
+
+    <div class="test">
+        <h3>Test 2: Resend Confirmation</h3>
+        <input type="email" id="existingEmail" placeholder="Enter existing email" value="rocksamir980@gmail.com">
+        <button onclick="resendConfirmation()">Resend Confirmation</button>
+        <div id="resendResult"></div>
+    </div>
+
+    <div class="test">
+        <h3>Test 3: Check User Status</h3>
+        <input type="email" id="checkEmail" placeholder="Enter email to check" value="rocksamir980@gmail.com">
+        <button onclick="checkUserStatus()">Check Status</button>
+        <div id="statusResult"></div>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://lzukcmjplavokrvdocak.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dWtjbWpwbGF2b2tydmRvY2FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjU1MjUsImV4cCI6MjA3MTgwMTUyNX0.UABFbOI6SPUrDcB91lobrBYTCaTNNor38CGHxbyMUTY'
+        );
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        async function testNewSignup() {
+            const email = document.getElementById('newEmail').value;
+            const resultDiv = document.getElementById('newResult');
+            resultDiv.innerHTML = '';
+            
+            if (!email) {
+                log('newResult', 'Please enter an email address', 'error');
+                return;
+            }
+            
+            log('newResult', `Testing signup for: ${email}`, 'info');
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: 'TestPassword123!',
+                    options: {
+                        emailRedirectTo: 'http://localhost:8081/auth/callback'
+                    }
+                });
+
+                if (error) {
+                    log('newResult', `Error: ${error.message}`, 'error');
+                } else {
+                    log('newResult', 'Signup successful!', 'success');
+                    log('newResult', `User ID: ${data.user?.id}`, 'info');
+                    log('newResult', `Email confirmed: ${data.user?.email_confirmed_at ? 'Yes' : 'No'}`, 'info');
+                    
+                    if (!data.user?.email_confirmed_at) {
+                        log('newResult', `📧 Confirmation email should be sent to: ${email}`, 'info');
+                        log('newResult', 'Check your inbox and spam folder!', 'info');
+                    }
+                }
+            } catch (err) {
+                log('newResult', `Unexpected error: ${err.message}`, 'error');
+            }
+        }
+
+        async function resendConfirmation() {
+            const email = document.getElementById('existingEmail').value;
+            const resultDiv = document.getElementById('resendResult');
+            resultDiv.innerHTML = '';
+            
+            log('resendResult', `Resending confirmation for: ${email}`, 'info');
+            
+            try {
+                const { error } = await supabase.auth.resend({
+                    type: 'signup',
+                    email: email,
+                    options: {
+                        emailRedirectTo: 'http://localhost:8081/auth/callback'
+                    }
+                });
+
+                if (error) {
+                    log('resendResult', `Error: ${error.message}`, 'error');
+                } else {
+                    log('resendResult', 'Confirmation email resent!', 'success');
+                    log('resendResult', 'Check your inbox and spam folder', 'info');
+                }
+            } catch (err) {
+                log('resendResult', `Unexpected error: ${err.message}`, 'error');
+            }
+        }
+
+        async function checkUserStatus() {
+            const email = document.getElementById('checkEmail').value;
+            const resultDiv = document.getElementById('statusResult');
+            resultDiv.innerHTML = '';
+            
+            log('statusResult', `Checking status for: ${email}`, 'info');
+            
+            try {
+                // This is a workaround to check user status
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: 'TestPassword123!'
+                });
+
+                if (error) {
+                    if (error.message.includes('Email not confirmed')) {
+                        log('statusResult', '❌ Email not confirmed - confirmation email needed', 'error');
+                    } else if (error.message.includes('Invalid login credentials')) {
+                        log('statusResult', '❌ User not found or wrong password', 'error');
+                    } else {
+                        log('statusResult', `Error: ${error.message}`, 'error');
+                    }
+                } else {
+                    log('statusResult', '✅ User is confirmed and can sign in', 'success');
+                }
+            } catch (err) {
+                log('statusResult', `Unexpected error: ${err.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

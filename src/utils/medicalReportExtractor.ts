@@ -1,45 +1,7 @@
-// Medical report extraction utility using Gemini API
+// Medical report extraction utility using universal schema
+import { UniversalMedicalReport } from "@/types/medicalReport";
 
-export interface ExtractedVitalSigns {
-  bloodPressure?: string;
-  heartRate?: string;
-  temperature?: string;
-  weight?: string;
-  height?: string;
-  respiratoryRate?: string;
-  oxygenSaturation?: string;
-}
-
-export interface ExtractedLabResult {
-  testName: string;
-  value: string;
-  unit?: string;
-  referenceRange?: string;
-  status?: "Normal" | "High" | "Low" | "Critical";
-}
-
-export interface ExtractedFindings {
-  category: string;
-  finding: string;
-  severity?: "Mild" | "Moderate" | "Severe";
-}
-
-export interface ExtractedReportData {
-  reportType: string;
-  patientName?: string;
-  doctorName?: string;
-  hospitalName?: string;
-  date?: string;
-  vitalSigns?: ExtractedVitalSigns;
-  labResults?: ExtractedLabResult[];
-  findings?: ExtractedFindings[];
-  diagnosis?: string[];
-  recommendations?: string[];
-  summary?: string;
-  nextAppointment?: string;
-}
-
-export async function extractMedicalReportData(imageFile: File): Promise<ExtractedReportData> {
+export async function extractMedicalReportData(imageFile: File): Promise<UniversalMedicalReport> {
   try {
     // Convert image to base64
     const base64Image = await fileToBase64(imageFile);
@@ -61,7 +23,7 @@ export async function extractMedicalReportData(imageFile: File): Promise<Extract
       throw new Error(errorData.error || `API request failed: ${response.statusText}`);
     }
 
-    const reportData: ExtractedReportData = await response.json();
+    const reportData: UniversalMedicalReport = await response.json();
     return reportData;
 
   } catch (error) {

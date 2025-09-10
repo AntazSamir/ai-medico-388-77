@@ -190,8 +190,8 @@ pass = "dhyZ0XBkI6CmEaNO"
 admin_email = "rocksamir980@gmail.com"
 sender_name = "AI Medico"
 security = "STARTTLS"
-# Ensure emails come from your Gmail address
-from_email = "rocksamir980@gmail.com"
+# Use the same email as your Brevo account
+from_email = "96b206001@smtp-brevo.com"
 from_name = "AI Medico"
 reply_to = "rocksamir980@gmail.com"
 # user = "apikey"

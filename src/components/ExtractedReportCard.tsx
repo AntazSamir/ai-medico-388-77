@@ -18,10 +18,10 @@ import {
   Building2,
   Stethoscope
 } from "lucide-react";
-import { ExtractedReportData } from "@/utils/medicalReportExtractor";
+import { UniversalMedicalReport } from "@/types/medicalReport";
 
 interface ExtractedReportCardProps {
-  reportData: ExtractedReportData;
+  reportData: UniversalMedicalReport;
 }
 
 export default function ExtractedReportCard({ reportData }: ExtractedReportCardProps) {

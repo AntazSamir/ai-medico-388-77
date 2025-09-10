@@ -1,0 +1,13 @@
+# Gmail SMTP Configuration (Alternative to Brevo)
+[auth.email.smtp]
+enabled = true
+host = "smtp.gmail.com"
+port = 587
+user = "rocksamir980@gmail.com"
+pass = "your-app-password"  # Use Gmail App Password, not regular password
+admin_email = "rocksamir980@gmail.com"
+sender_name = "AI Medico"
+security = "STARTTLS"
+from_email = "rocksamir980@gmail.com"
+from_name = "AI Medico"
+reply_to = "rocksamir980@gmail.com"

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Test - AI Medico</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>🧪 AI Medico Email Test</h1>
+    
+    <div class="test-section">
+        <h3>1. Test Email Signup</h3>
+        <input type="email" id="testEmail" placeholder="Enter test email" value="test@example.com">
+        <button onclick="testSignup()">Test Signup</button>
+        <div id="signupResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Test Password Reset</h3>
+        <input type="email" id="resetEmail" placeholder="Enter email for reset" value="test@example.com">
+        <button onclick="testPasswordReset()">Test Password Reset</button>
+        <div id="resetResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Check Auth Status</h3>
+        <button onclick="checkAuthStatus()">Check Current Auth</button>
+        <div id="authResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Test Email Resend</h3>
+        <input type="email" id="resendEmail" placeholder="Enter email to resend" value="test@example.com">
+        <button onclick="resendConfirmation()">Resend Confirmation</button>
+        <div id="resendResult" class="log"></div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://lzukcmjplavokrvdocak.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dWtjbWpwbGF2b2tydmRvY2FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjU1MjUsImV4cCI6MjA3MTgwMTUyNX0.UABFbOI6SPUrDcB91lobrBYTCaTNNor38CGHxbyMUTY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        async function testSignup() {
+            const email = document.getElementById('testEmail').value;
+            const resultDiv = document.getElementById('signupResult');
+            resultDiv.innerHTML = '';
+            
+            log('signupResult', `Testing signup for: ${email}`, 'info');
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: 'TestPassword123!',
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/auth/callback`
+                    }
+                });
+
+                if (error) {
+                    log('signupResult', `❌ Error: ${error.message}`, 'error');
+                } else {
+                    log('signupResult', `✅ Signup successful!`, 'success');
+                    log('signupResult', `User ID: ${data.user?.id}`, 'info');
+                    log('signupResult', `Email confirmed: ${data.user?.email_confirmed_at ? 'Yes' : 'No'}`, 'info');
+                    
+                    if (!data.user?.email_confirmed_at) {
+                        log('signupResult', `📧 Confirmation email should be sent to: ${email}`, 'info');
+                        log('signupResult', `Check your inbox and spam folder!`, 'info');
+                    }
+                }
+            } catch (err) {
+                log('signupResult', `❌ Unexpected error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testPasswordReset() {
+            const email = document.getElementById('resetEmail').value;
+            const resultDiv = document.getElementById('resetResult');
+            resultDiv.innerHTML = '';
+            
+            log('resetResult', `Testing password reset for: ${email}`, 'info');
+            
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`
+                });
+
+                if (error) {
+                    log('resetResult', `❌ Error: ${error.message}`, 'error');
+                } else {
+                    log('resetResult', `✅ Password reset email sent!`, 'success');
+                    log('resetResult', `Check your inbox for reset instructions`, 'info');
+                }
+            } catch (err) {
+                log('resetResult', `❌ Unexpected error: ${err.message}`, 'error');
+            }
+        }
+
+        async function checkAuthStatus() {
+            const resultDiv = document.getElementById('authResult');
+            resultDiv.innerHTML = '';
+            
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error) {
+                    log('authResult', `❌ Error: ${error.message}`, 'error');
+                } else if (user) {
+                    log('authResult', `✅ User logged in: ${user.email}`, 'success');
+                    log('authResult', `Email confirmed: ${user.email_confirmed_at ? 'Yes' : 'No'}`, 'info');
+                    log('authResult', `Last sign in: ${user.last_sign_in_at}`, 'info');
+                } else {
+                    log('authResult', `No user currently logged in`, 'info');
+                }
+            } catch (err) {
+                log('authResult', `❌ Unexpected error: ${err.message}`, 'error');
+            }
+        }
+
+        async function resendConfirmation() {
+            const email = document.getElementById('resendEmail').value;
+            const resultDiv = document.getElementById('resendResult');
+            resultDiv.innerHTML = '';
+            
+            log('resendResult', `Resending confirmation for: ${email}`, 'info');
+            
+            try {
+                const { error } = await supabase.auth.resend({
+                    type: 'signup',
+                    email: email,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/auth/callback`
+                    }
+                });
+
+                if (error) {
+                    log('resendResult', `❌ Error: ${error.message}`, 'error');
+                } else {
+                    log('resendResult', `✅ Confirmation email resent!`, 'success');
+                    log('resendResult', `Check your inbox and spam folder`, 'info');
+                }
+            } catch (err) {
+                log('resendResult', `❌ Unexpected error: ${err.message}`, 'error');
+            }
+        }
+
+        // Auto-check auth status on load
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

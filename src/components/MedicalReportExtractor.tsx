@@ -4,10 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Loader2, FileText, X } from "lucide-react";
-import { extractMedicalReportData, ExtractedReportData } from "@/utils/medicalReportExtractor";
+import { extractMedicalReportData } from "@/utils/medicalReportExtractor";
+import { UniversalMedicalReport } from "@/types/medicalReport";
 
 interface MedicalReportExtractorProps {
-  onReportExtracted: (reportData: ExtractedReportData, imageUrl?: string) => void;
+  onReportExtracted: (reportData: UniversalMedicalReport, imageUrl?: string) => void;
   onCancel: () => void;
 }
 

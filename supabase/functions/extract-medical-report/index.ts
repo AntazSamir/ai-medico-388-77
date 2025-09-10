@@ -18,30 +18,30 @@ interface ExtractedVitalSigns {
 interface ExtractedLabResult {
   testName: string;
   value: string;
-  unit?: string;
-  referenceRange?: string;
-  status?: "Normal" | "High" | "Low" | "Critical";
+  unit?: string | null;
+  referenceRange?: string | null;
+  status?: "Normal" | "High" | "Low" | "Critical" | null;
 }
 
 interface ExtractedFindings {
   category: string;
-  finding: string;
-  severity?: "Mild" | "Moderate" | "Severe";
+  finding?: string;
+  severity?: "Mild" | "Moderate" | "Severe" | null;
 }
 
 interface ExtractedReportData {
   reportType: string;
-  patientName?: string;
-  doctorName?: string;
-  hospitalName?: string;
-  date?: string;
+  patientName?: string | null;
+  doctorName?: string | null;
+  hospitalName?: string | null;
+  date?: string | null; // YYYY-MM-DD
   vitalSigns?: ExtractedVitalSigns;
   labResults?: ExtractedLabResult[];
   findings?: ExtractedFindings[];
   diagnosis?: string[];
   recommendations?: string[];
-  summary?: string;
-  nextAppointment?: string;
+  summary?: string | null;
+  nextAppointment?: string | null;
 }
 
 serve(async (req) => {
@@ -230,21 +230,31 @@ serve(async (req) => {
     }
 
     const reportData: ExtractedReportData = JSON.parse(jsonMatch[0]);
-    
-    // Validate and clean the data
-    const cleanedData = {
+
+    // Validate and clean the data to a universal schema using nulls for missing
+    const cleanedData: ExtractedReportData = {
       reportType: reportData.reportType || 'Unknown Report',
-      patientName: reportData.patientName || '',
-      doctorName: reportData.doctorName || '',
-      hospitalName: reportData.hospitalName || '',
-      date: reportData.date || new Date().toISOString().split('T')[0],
+      patientName: reportData.patientName ?? null,
+      doctorName: reportData.doctorName ?? null,
+      hospitalName: reportData.hospitalName ?? null,
+      date: reportData.date ?? null,
       vitalSigns: reportData.vitalSigns || {},
-      labResults: reportData.labResults || [],
-      findings: reportData.findings || [],
+      labResults: (reportData.labResults || []).map((lr) => ({
+        testName: lr.testName,
+        value: lr.value,
+        unit: lr.unit ?? null,
+        referenceRange: lr.referenceRange ?? null,
+        status: lr.status ?? null
+      })),
+      findings: (reportData.findings || []).map((f) => ({
+        category: f.category,
+        finding: f.finding ?? undefined,
+        severity: f.severity ?? null
+      })),
       diagnosis: reportData.diagnosis || [],
       recommendations: reportData.recommendations || [],
-      summary: reportData.summary || '',
-      nextAppointment: reportData.nextAppointment || ''
+      summary: reportData.summary ?? null,
+      nextAppointment: reportData.nextAppointment ?? null
     };
 
     return new Response(

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Email Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Quick Email Test</h1>
+    <input type="email" id="email" placeholder="Enter YOUR real email" value="rocksamir980@gmail.com">
+    <button onclick="testEmail()">Send Test Email</button>
+    <div id="result"></div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://lzukcmjplavokrvdocak.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dWtjbWpwbGF2b2tydmRvY2FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjU1MjUsImV4cCI6MjA3MTgwMTUyNX0.UABFbOI6SPUrDcB91lobrBYTCaTNNor38CGHxbyMUTY'
+        );
+
+        async function testEmail() {
+            const email = document.getElementById('email').value;
+            const result = document.getElementById('result');
+            
+            result.innerHTML = 'Sending...';
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: 'TestPassword123!',
+                    options: {
+                        emailRedirectTo: 'http://localhost:8081/auth/callback'
+                    }
+                });
+
+                if (error) {
+                    result.innerHTML = 'Error: ' + error.message;
+                } else {
+                    result.innerHTML = 'Success! Check your email inbox and spam folder for: ' + email;
+                }
+            } catch (err) {
+                result.innerHTML = 'Error: ' + err.message;
+            }
+        }
+    </script>
+</body>
+</html>
