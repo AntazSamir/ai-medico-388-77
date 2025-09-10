@@ -386,7 +386,9 @@ export default function Profile() {
   }, [navigate, toast]);
 
   const handleAddRecord = () => {
-    if (!newRecord.patientName || !newRecord.date || !newRecord.diagnosis || !newRecord.symptoms) {
+    // If at least one file/report is uploaded, allow saving without other fields
+    const hasUploadedFiles = uploadedFiles && uploadedFiles.length > 0;
+    if (!hasUploadedFiles && (!newRecord.patientName || !newRecord.date || !newRecord.diagnosis || !newRecord.symptoms)) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
