@@ -15,12 +15,13 @@
 3. **Enable custom SMTP server**: ✓ ON
 4. **Enter these EXACT settings**:
    ```
-   SMTP Host: smtp.gmail.com
-   SMTP Port: 465
-   SMTP Username: rocksamir980@gmail.com
-   SMTP Password: dznb rinc wxjt cwgp
+   SMTP Host: smtp-relay.brevo.com
+   SMTP Port: 587
+   SMTP Username: 96b206001@smtp-brevo.com
+   SMTP Password: dhyZ0XBkI6CmEaNO
    Sender Name: AI Medico
    Sender Email: rocksamir980@gmail.com
+   Security: STARTTLS
    ```
 5. **Click SAVE**
 

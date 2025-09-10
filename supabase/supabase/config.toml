@@ -180,16 +180,16 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use Gmail SMTP server
+# Use Brevo SMTP server
 [auth.email.smtp]
 enabled = true
-host = "smtp.gmail.com"
-port = 465
-user = "rocksamir980@gmail.com"
-pass = "dznb rinc wxjt cwgp"
+host = "smtp-relay.brevo.com"
+port = 587
+user = "96b206001@smtp-brevo.com"
+pass = "dhyZ0XBkI6CmEaNO"
 admin_email = "rocksamir980@gmail.com"
 sender_name = "AI Medico"
-security = "SSL"
+security = "STARTTLS"
 # Ensure emails come from your Gmail address
 from_email = "rocksamir980@gmail.com"
 from_name = "AI Medico"

@@ -139,11 +139,11 @@ class EmailDebugHelper {
     console.log('5️⃣ Checking Common SMTP Issues...');
     
     const issues = {
-      'Gmail SMTP Host': 'Should be smtp.gmail.com',
-      'Gmail SMTP Port': 'Should be 465',
-      'Gmail Security': 'Should be SSL/TLS',
-      'Gmail App Password': 'Should be 16-character app password, not regular password',
-      'Sender Email': 'Should match Gmail username (rocksamir980@gmail.com)',
+      'Brevo SMTP Host': 'Should be smtp-relay.brevo.com',
+      'Brevo SMTP Port': 'Should be 587',
+      'Brevo Security': 'Should be STARTTLS',
+      'Brevo Credentials': 'Should use Brevo SMTP login and password',
+      'Sender Email': 'Should be rocksamir980@gmail.com',
       'Confirmations Enabled': 'Should be enabled in Supabase Auth settings',
       'Rate Limiting': 'Check if hitting 30 emails/hour limit'
     };
@@ -207,8 +207,8 @@ console.log(`
 🛠️ COMMON FIXES:
 1. Gmail App Password: Generate new 16-character password at myaccount.google.com/security
 2. Supabase SMTP: Verify settings in dashboard (Settings → Auth → SMTP)
-3. Port: Must be 465 (SSL/TLS)
-4. Security: Must be SSL/TLS (if using port 465)
+3. Port: Must be 587 (STARTTLS)
+4. Security: Must be STARTTLS (for Brevo)
 5. Sender Email: Must match Gmail username
 
 🚨 IF STILL FAILING:
