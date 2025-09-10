@@ -310,13 +310,14 @@ Patient Information:
   };
 
   const handleDeleteFamilyMember = (memberId: string, memberName: string) => {
-    const memberToDelete = familyMembers.find(member => member.id === memberId);
-    if (!memberToDelete) return;
-    
-    const updatedMembers = familyMembers.filter(member => member.id !== memberId);
+    const index = familyMembers.findIndex(member => member.id === memberId);
+    if (index === -1) return;
+    const memberToDelete = familyMembers[index];
+
+    const updatedMembers = [...familyMembers.slice(0, index), ...familyMembers.slice(index + 1)];
     setFamilyMembers(updatedMembers);
     localStorage.setItem('familyMembers', JSON.stringify(updatedMembers));
-    
+
     toast({
       title: "Family Member Deleted",
       description: `${memberName} has been removed from your family members`,
@@ -325,7 +326,7 @@ Patient Information:
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handleUndoDelete(memberToDelete)}
+          onClick={() => handleUndoDelete(memberToDelete, index)}
           className="bg-white text-red-600 border-red-200 hover:bg-red-50"
         >
           Undo
@@ -334,14 +335,25 @@ Patient Information:
     });
   };
 
-  const handleUndoDelete = (deletedMember: FamilyMember) => {
-    const updatedMembers = [...familyMembers, deletedMember];
-    setFamilyMembers(updatedMembers);
-    localStorage.setItem('familyMembers', JSON.stringify(updatedMembers));
-    
-    toast({
-      title: "Family Member Restored",
-      description: `${deletedMember.name} has been restored to your family members`,
+  const handleUndoDelete = (deletedMember: FamilyMember, originalIndex: number) => {
+    setFamilyMembers(prev => {
+      // If already present (e.g., Undo clicked twice), do nothing
+      if (prev.some(m => m.id === deletedMember.id)) return prev;
+
+      const insertAt = Math.min(Math.max(originalIndex, 0), prev.length);
+      const restored = [
+        ...prev.slice(0, insertAt),
+        deletedMember,
+        ...prev.slice(insertAt)
+      ];
+      localStorage.setItem('familyMembers', JSON.stringify(restored));
+
+      toast({
+        title: "Family Member Restored",
+        description: `${deletedMember.name} has been restored to your family members`,
+      });
+
+      return restored;
     });
   };
 

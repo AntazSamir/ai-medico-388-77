@@ -43,7 +43,8 @@ import {
   Upload,
   Clock,
   Edit,
-  Bot
+  Bot,
+  Trash2
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { RecentActivityManager } from "@/utils/recentActivity";
@@ -579,6 +580,37 @@ export default function FamilyMemberReportCard() {
     });
   };
 
+  const handleDeletePrescription = (prescriptionId: string) => {
+    setPrescriptions(prev => {
+      const index = prev.findIndex(p => p.id === prescriptionId);
+      if (index === -1) return prev;
+      const deleted = prev[index];
+      const next = [...prev.slice(0, index), ...prev.slice(index + 1)];
+
+      toast({
+        title: "Deleted",
+        description: "Prescription deleted",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setPrescriptions(cur => {
+                const before = cur.slice(0, index);
+                const after = cur.slice(index);
+                return [...before, deleted, ...after];
+              });
+            }}
+          >
+            Undo
+          </Button>
+        ),
+      });
+
+      return next;
+    });
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
@@ -661,6 +693,42 @@ Patient Information:
     toast({
       title: "Export Successful",
       description: `Medical record exported as ${format.toUpperCase()}`,
+    });
+  };
+
+  const handleDeleteRecord = (recordId: string) => {
+    setMedicalHistory(prev => {
+      const index = prev.findIndex(r => r.id === recordId);
+      if (index === -1) return prev;
+      const deleted = prev[index];
+      const next = [...prev.slice(0, index), ...prev.slice(index + 1)];
+
+      if (selectedRecord && selectedRecord.id === recordId) {
+        setShowRecordDialog(false);
+        setSelectedRecord(null);
+      }
+
+      toast({
+        title: "Deleted",
+        description: "Medical record deleted",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setMedicalHistory(cur => {
+                const before = cur.slice(0, index);
+                const after = cur.slice(index);
+                return [...before, deleted, ...after];
+              });
+            }}
+          >
+            Undo
+          </Button>
+        ),
+      });
+
+      return next;
     });
   };
 
@@ -828,6 +896,7 @@ Patient Information:
                       });
                       setShowAddPrescription(true);
                     }}
+                    onDeletePrescription={(id: string) => handleDeletePrescription(id)}
                   />
                 </div>
               )}
@@ -868,6 +937,18 @@ Patient Information:
                           <Badge className={getStatusColor(record.status)}>
                             {record.status}
                           </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-8 w-8 text-red-500 hover:text-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRecord(record.id);
+                            }}
+                            aria-label="Delete Record"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                       <p className="text-gray-600 text-sm">{record.summary}</p>
@@ -1094,6 +1175,15 @@ Patient Information:
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              {selectedRecord && (
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDeleteRecord(selectedRecord.id)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Record
+                </Button>
+              )}
               <Button variant="outline" onClick={() => setShowRecordDialog(false)}>
                 Close
               </Button>

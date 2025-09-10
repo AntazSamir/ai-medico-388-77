@@ -24,13 +24,15 @@ interface PrescriptionsSectionProps {
   setPrescriptions: (prescriptions: Prescription[]) => void;
   onAddPrescription: () => void;
   onEditPrescription: (prescription: Prescription) => void;
+  onDeletePrescription?: (prescriptionId: string) => void;
 }
 
 export function PrescriptionsSection({ 
   prescriptions, 
   setPrescriptions, 
   onAddPrescription, 
-  onEditPrescription 
+  onEditPrescription,
+  onDeletePrescription
 }: PrescriptionsSectionProps) {
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -220,6 +222,7 @@ export function PrescriptionsSection({
                         prescription={prescription}
                         onView={() => handleViewPrescription(prescription)}
                         onEdit={() => onEditPrescription(prescription)}
+                        onDelete={onDeletePrescription ? () => onDeletePrescription(prescription.id) : undefined}
                       />
                     ))}
                   </div>

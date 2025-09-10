@@ -49,7 +49,8 @@ import {
   Users,
   ArrowLeft,
   Pill,
-  Bot
+  Bot,
+  Trash2
 } from "lucide-react";
 
 // Default patient data structure
@@ -547,6 +548,42 @@ export default function Profile() {
     setShowRecordDialog(true);
   };
 
+  const handleDeleteRecord = (recordId: string) => {
+    setMedicalHistory(prev => {
+      const index = prev.findIndex(r => r.id === recordId);
+      if (index === -1) return prev;
+      const deleted = prev[index];
+      const next = [...prev.slice(0, index), ...prev.slice(index + 1)];
+
+      if (selectedRecord && selectedRecord.id === recordId) {
+        setShowRecordDialog(false);
+        setSelectedRecord(null);
+      }
+
+      toast({
+        title: "Deleted",
+        description: "Medical record deleted",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setMedicalHistory(cur => {
+                const before = cur.slice(0, index);
+                const after = cur.slice(index);
+                return [...before, deleted, ...after];
+              });
+            }}
+          >
+            Undo
+          </Button>
+        ),
+      });
+
+      return next;
+    });
+  };
+
   const handleExport = (format: 'pdf' | 'doc') => {
     if (!selectedRecord) return;
     
@@ -835,6 +872,36 @@ This is a simulated export. In a real application, this would generate a ${forma
                     setPrescriptionImage(prescription.image || null);
                     setShowAddPrescription(true);
                   }}
+                  onDeletePrescription={(prescriptionId: string) => {
+                    setPrescriptions(prev => {
+                      const index = prev.findIndex(p => p.id === prescriptionId);
+                      if (index === -1) return prev;
+                      const deleted = prev[index];
+                      const next = [...prev.slice(0, index), ...prev.slice(index + 1)];
+
+                      toast({
+                        title: "Deleted",
+                        description: "Prescription deleted",
+                        action: (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setPrescriptions(cur => {
+                                const before = cur.slice(0, index);
+                                const after = cur.slice(index);
+                                return [...before, deleted, ...after];
+                              });
+                            }}
+                          >
+                            Undo
+                          </Button>
+                        ),
+                      });
+
+                      return next;
+                    });
+                  }}
                 />
               </div>
             )}
@@ -869,7 +936,21 @@ This is a simulated export. In a real application, this would generate a ${forma
                         </div>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(record.status)}>{record.status}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(record.status)}>{record.status}</Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-1 h-8 w-8 text-red-500 hover:text-red-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteRecord(record.id);
+                        }}
+                        aria-label="Delete Record"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <p className="text-gray-600 text-sm">{record.summary}</p>
                 </Card>
@@ -1217,6 +1298,15 @@ This is a simulated export. In a real application, this would generate a ${forma
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                {selectedRecord && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteRecord(selectedRecord.id)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Record
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => setShowRecordDialog(false)}>
                   Close
                 </Button>

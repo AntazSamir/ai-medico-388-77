@@ -1,15 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { Prescription } from "./PrescriptionCard";
 
 interface PrescriptionListItemProps {
   prescription: Prescription;
   onView: () => void;
   onEdit: () => void;
+  onDelete?: () => void;
 }
 
-export function PrescriptionListItem({ prescription, onView, onEdit }: PrescriptionListItemProps) {
+export function PrescriptionListItem({ prescription, onView, onEdit, onDelete }: PrescriptionListItemProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Active": return "bg-green-100 text-green-700 border-green-200";
@@ -90,6 +91,20 @@ export function PrescriptionListItem({ prescription, onView, onEdit }: Prescript
           >
             <Edit className="h-4 w-4" />
           </Button>
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="p-1 h-8 w-8 text-red-500 hover:text-red-600"
+              aria-label="Delete Prescription"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </div>
