@@ -95,6 +95,7 @@ export default function SignUpForm() {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             full_name: formData.name,
             phone: formData.phone,
