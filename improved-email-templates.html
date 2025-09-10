@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Improved Email Templates</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .template { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .current { background: #ffebee; }
+        .improved { background: #e8f5e8; }
+        .code { background: #f5f5f5; padding: 10px; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>📧 Improved Email Templates</h1>
+    
+    <div class="template current">
+        <h3>❌ Current Template (Triggers Spam)</h3>
+        <div class="code">
+Subject: "Reset your AI Medico password"<br><br>
+Content: "Click here to reset your password"<br>
+Link: "Reset Password"
+        </div>
+    </div>
+
+    <div class="template improved">
+        <h3>✅ Improved Template (Less Spammy)</h3>
+        <div class="code">
+Subject: "Your AI Medico account security update"<br><br>
+Content: "We received a request to update your account security. If this was you, please use the link below to continue. If you didn't request this, please ignore this email."<br>
+Link: "Continue Security Update"
+        </div>
+    </div>
+
+    <h2>Confirmation Email Template</h2>
+    <div class="template improved">
+        <h3>✅ Improved Confirmation Template</h3>
+        <div class="code">
+Subject: "Welcome to AI Medico - Please confirm your account"<br><br>
+Content: "Thank you for joining AI Medico! To complete your registration and start using our healthcare platform, please confirm your email address by clicking the button below."<br>
+Link: "Confirm My Account"
+        </div>
+    </div>
+
+    <h2>How to Update in Supabase:</h2>
+    <ol>
+        <li>Go to Supabase Dashboard → Authentication → Email Templates</li>
+        <li>Update "Confirm signup" template</li>
+        <li>Update "Reset password" template</li>
+        <li>Use the improved content above</li>
+    </ol>
+</body>
+</html>

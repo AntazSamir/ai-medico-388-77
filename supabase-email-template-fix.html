@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Email Template Fix</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .step { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .important { background: #fff3cd; border-color: #ffc107; }
+        .code { background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-line; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Fix Email Spam Issues</h1>
+    
+    <div class="step important">
+        <h3>🚨 Why Emails Go to Spam</h3>
+        <ul>
+            <li><strong>Sender looks suspicious:</strong> <code>96b206001@smtp-brevo.com</code></li>
+            <li><strong>Missing authentication:</strong> No SPF/DKIM records</li>
+            <li><strong>Spammy content:</strong> "Reset password" triggers filters</li>
+            <li><strong>From/Reply mismatch:</strong> Different addresses confuse filters</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>1. Update Supabase Email Templates</h3>
+        <p>Go to: <a href="https://supabase.com/dashboard/project/lzukcmjplavokrvdocak/auth/templates" target="_blank">Supabase Dashboard → Authentication → Email Templates</a></p>
+        
+        <h4>Password Reset Template:</h4>
+        <div class="code">Subject: "Your AI Medico account security update"
+
+Hi there,
+
+We received a request to update your account security. If this was you, please use the link below to continue.
+
+If you didn't request this change, please ignore this email and your account will remain secure.
+
+Continue Security Update: {{ .ConfirmationURL }}
+
+This link will expire in 24 hours for your security.
+
+Best regards,
+AI Medico Team</div>
+
+        <h4>Confirmation Template:</h4>
+        <div class="code">Subject: "Welcome to AI Medico - Please confirm your account"
+
+Welcome to AI Medico!
+
+Thank you for joining our healthcare platform. To complete your registration and start using our services, please confirm your email address.
+
+Confirm My Account: {{ .ConfirmationURL }}
+
+This link will expire in 24 hours.
+
+If you didn't create an account with AI Medico, please ignore this email.
+
+Best regards,
+AI Medico Team</div>
+    </div>
+
+    <div class="step">
+        <h3>2. Test Email Deliverability</h3>
+        <input type="email" id="testEmail" placeholder="Enter your email" value="rocksamir980@gmail.com">
+        <button onclick="testPasswordReset()">Test Password Reset</button>
+        <button onclick="testSignup()">Test Signup</button>
+        <div id="testResult"></div>
+    </div>
+
+    <div class="step">
+        <h3>3. Alternative: Use Gmail SMTP</h3>
+        <p>If Brevo continues having issues, switch to Gmail:</p>
+        <div class="code">Host: smtp.gmail.com
+Port: 587
+Username: rocksamir980@gmail.com
+Password: [Gmail App Password]
+From Email: rocksamir980@gmail.com
+Reply To: rocksamir980@gmail.com</div>
+        
+        <p><strong>To get Gmail App Password:</strong></p>
+        <ol>
+            <li>Enable 2-factor authentication on Gmail</li>
+            <li>Go to Google Account → Security → 2-Step Verification → App passwords</li>
+            <li>Generate password for "Mail"</li>
+            <li>Use this password in Supabase (not your regular Gmail password)</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h3>4. Check Email Status</h3>
+        <button onclick="checkEmailStatus()">Check Current Email Settings</button>
+        <div id="statusResult"></div>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://lzukcmjplavokrvdocak.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dWtjbWpwbGF2b2tydmRvY2FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjU1MjUsImV4cCI6MjA3MTgwMTUyNX0.UABFbOI6SPUrDcB91lobrBYTCaTNNor38CGHxbyMUTY'
+        );
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        async function testPasswordReset() {
+            const email = document.getElementById('testEmail').value;
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '';
+            
+            log('testResult', `Testing password reset for: ${email}`, 'info');
+            
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: 'http://localhost:8081/reset-password'
+                });
+
+                if (error) {
+                    log('testResult', `Error: ${error.message}`, 'error');
+                } else {
+                    log('testResult', 'Password reset email sent!', 'success');
+                    log('testResult', 'Check your inbox and spam folder', 'info');
+                    log('testResult', 'If it goes to spam, mark as "Not Spam"', 'info');
+                }
+            } catch (err) {
+                log('testResult', `Unexpected error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testSignup() {
+            const email = document.getElementById('testEmail').value;
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '';
+            
+            log('testResult', `Testing signup for: ${email}`, 'info');
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: 'TestPassword123!',
+                    options: {
+                        emailRedirectTo: 'http://localhost:8081/auth/callback'
+                    }
+                });
+
+                if (error) {
+                    log('testResult', `Error: ${error.message}`, 'error');
+                } else {
+                    log('testResult', 'Signup successful!', 'success');
+                    log('testResult', 'Confirmation email should be sent', 'info');
+                    log('testResult', 'Check your inbox and spam folder', 'info');
+                }
+            } catch (err) {
+                log('testResult', `Unexpected error: ${err.message}`, 'error');
+            }
+        }
+
+        async function checkEmailStatus() {
+            const resultDiv = document.getElementById('statusResult');
+            resultDiv.innerHTML = '';
+            
+            log('statusResult', 'Checking current email configuration...', 'info');
+            log('statusResult', 'Current SMTP: smtp-relay.brevo.com', 'info');
+            log('statusResult', 'From Email: 96b206001@smtp-brevo.com', 'info');
+            log('statusResult', 'This sender address looks suspicious to spam filters', 'error');
+            log('statusResult', 'Recommendation: Use your own domain or Gmail SMTP', 'info');
+        }
+    </script>
+</body>
+</html>
