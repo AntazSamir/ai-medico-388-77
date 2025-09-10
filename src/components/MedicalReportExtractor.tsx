@@ -22,8 +22,8 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Invalid file type",
-        description: "Please select an image file (JPG, PNG, etc.)",
+        title: "Unsupported file type",
+        description: "Images are supported now. PDF/DOC coming soon.",
         variant: "destructive",
       });
       return;
@@ -125,9 +125,10 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept=".png,.jpg,.jpeg,.webp,.pdf,.doc,.docx"
               onChange={handleFileInput}
               className="hidden"
+              required
             />
           </div>
         ) : (
