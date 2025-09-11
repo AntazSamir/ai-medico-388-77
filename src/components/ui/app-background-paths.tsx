@@ -51,7 +51,7 @@ function FloatingPaths({ position }: { position: number }) {
 
 export function AppBackgroundPaths({ children }: { children?: React.ReactNode }) {
     return (
-        <div className="relative w-full min-h-screen bg-gradient-to-br from-medical-50 via-medical-25 to-medical-100 dark:from-medical-950 dark:via-medical-900 dark:to-medical-800">
+        <div className="relative w-full min-h-screen bg-gradient-to-br from-medical-50 via-white to-medical-100">
             {/* Animated background paths */}
             <div className="absolute inset-0 overflow-hidden">
                 <FloatingPaths position={1} />
@@ -61,10 +61,10 @@ export function AppBackgroundPaths({ children }: { children?: React.ReactNode })
 
             {/* Additional visible decorative elements */}
             <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-medical-500/15 rounded-full blur-3xl animate-pulse-gentle"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-medical-600/15 rounded-full blur-3xl animate-pulse-gentle"></div>
-                <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-medical-400/10 rounded-full blur-2xl animate-bounce-gentle"></div>
-                <div className="absolute bottom-1/3 right-1/4 w-64 h-64 bg-medical-300/10 rounded-full blur-2xl animate-bounce-gentle"></div>
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-medical-500/15 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-medical-600/15 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-medical-400/10 rounded-full blur-2xl animate-bounce"></div>
+                <div className="absolute bottom-1/3 right-1/4 w-64 h-64 bg-medical-300/10 rounded-full blur-2xl animate-bounce"></div>
             </div>
 
             {/* Content */}
