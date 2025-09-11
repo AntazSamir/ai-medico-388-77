@@ -134,6 +134,7 @@ const mockFamilyMembers = [
 ];
 
 const Dashboard = memo(() => {
+  console.log('Dashboard component rendering...');
   const navigate = useNavigate();
   const { isMobile, isLowEndDevice, shouldReduceMotion, debounce } = useMobilePerformance();
   
