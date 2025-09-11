@@ -22,10 +22,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  esbuild: {
+    keepNames: true,
+  },
   build: {
     // Optimize for mobile performance
     target: 'esnext',
-    minify: 'esbuild',
+    // Temporarily disable minification to diagnose prod runtime error
+    minify: false,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -100,8 +104,8 @@ export default defineConfig(({ mode }) => ({
     },
     // Optimize chunk size for mobile
     chunkSizeWarningLimit: 500,
-    // Enable source maps for debugging in production
-    sourcemap: mode === 'development',
+    // Force source maps to debug in production
+    sourcemap: true,
     // Optimize CSS
     cssCodeSplit: true,
     cssMinify: true,
