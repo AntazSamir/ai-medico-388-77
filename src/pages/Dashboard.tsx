@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, memo, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { RecentActivityManager, ActivityItem } from "../utils/recentActivity";
 import { PrescriptionDialog } from "@/components/prescriptions/PrescriptionDialog";
 import { Prescription } from "@/components/prescriptions/PrescriptionCard";
+import { useMobilePerformance } from "@/hooks/use-mobile-performance";
 
 // Mock prescriptions data - same as Medications page
 const mockPrescriptions: Record<string, Prescription[]> = {
@@ -132,8 +133,10 @@ const mockFamilyMembers = [
   }
 ];
 
-const Dashboard = () => {
+const Dashboard = memo(() => {
   const navigate = useNavigate();
+  const { isMobile, isLowEndDevice, shouldReduceMotion, debounce } = useMobilePerformance();
+  
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     familyMembers: 0,
@@ -158,25 +161,29 @@ const Dashboard = () => {
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
-  // Load recent activity on component mount
-  useEffect(() => {
-    const loadRecentActivity = () => {
+  // Debounced function for loading recent activity
+  const debouncedLoadActivity = useCallback(
+    debounce(() => {
       const activity = RecentActivityManager.getRecentActivity();
       setRecentActivity(activity);
-    };
-    
-    loadRecentActivity();
+    }, 100),
+    [debounce]
+  );
+
+  // Load recent activity on component mount
+  useEffect(() => {
+    debouncedLoadActivity();
     
     // Listen for storage changes to update activity in real-time
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'recentActivity') {
-        loadRecentActivity();
+        debouncedLoadActivity();
       }
     };
     
     // Listen for focus events to refresh activity when returning to tab
     const handleFocus = () => {
-      loadRecentActivity();
+      debouncedLoadActivity();
     };
     
     window.addEventListener('storage', handleStorageChange);
@@ -186,7 +193,7 @@ const Dashboard = () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [debouncedLoadActivity]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -655,4 +662,5 @@ const Dashboard = () => {
   );
 };
 
+Dashboard.displayName = "Dashboard";
 export default Dashboard;

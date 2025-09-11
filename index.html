@@ -3,15 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>AI Medico - Health Management Platform</title>
-    <meta name="description" content="Comprehensive health management platform with AI-powered symptom analysis, prescription tracking, and family health monitoring" />
-    <meta name="author" content="Lovable" />
-    <meta name="theme-color" content="#6366f1" />
+    <title>AI Medico - Mobile Health Assistant</title>
+    <meta name="description" content="AI-powered mobile health assistant for symptom analysis, prescription management, and family health tracking. Optimized for iOS and Android." />
+    <meta name="author" content="AI Medico Team" />
+    <meta name="theme-color" content="#3b82f6" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple Touch Icons and Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="AI Medico" />
     <link rel="apple-touch-icon" href="/og-image.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/og-image.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="AI Medico - Mobile Health Assistant" />
+    <meta property="og:description" content="AI-powered mobile health assistant for symptom analysis, prescription management, and family health tracking" />
     <meta property="og:image" content="/og-image.png" />
+    <meta property="og:url" content="https://ai-medico.app" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AI Medico - Mobile Health Assistant" />
+    <meta name="twitter:description" content="AI-powered mobile health assistant for symptom analysis, prescription management, and family health tracking" />
+    <meta name="twitter:image" content="/og-image.png" />
+    
+    <!-- Mobile Performance Optimizations -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="AI Medico" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
+    
+    <!-- DNS Prefetch for Performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
   </head>
 
   <body>

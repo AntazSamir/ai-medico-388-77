@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useMobilePerformance } from "@/hooks/use-mobile-performance";
 import PageTransition from "@/components/PageTransition";
 import Navigation from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
@@ -149,7 +150,9 @@ const mockMedicalHistory: MedicalRecord[] = [
   }
 ];
 
-export default function Profile() {
+const Profile = memo(() => {
+  const { isMobile, isLowEndDevice, shouldReduceMotion, debounce } = useMobilePerformance();
+  
   const [medicalHistory, setMedicalHistory] = useState(mockMedicalHistory);
   const [patient, setPatient] = useState(defaultPatient);
   const [loading, setLoading] = useState(true);
@@ -847,35 +850,35 @@ This is a simulated export. In a real application, this would generate a ${forma
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2 sm:space-y-3">
-                    {patient.name && (
-                      <div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">Name:</span>
-                        <p className="text-sm sm:text-base text-gray-900">{patient.name}</p>
-                      </div>
-                    )}
-                    {patient.age && (
-                      <div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">Age:</span>
-                        <p className="text-sm sm:text-base text-gray-900">{patient.age} years</p>
-                      </div>
-                    )}
-                    {patient.gender && (
-                      <div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">Gender:</span>
-                        <p className="text-sm sm:text-base text-gray-900">{patient.gender}</p>
-                      </div>
-                    )}
+                <div className="space-y-2 sm:space-y-3">
+                  {patient.name && (
                     <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Email:</span>
-                      <p className="text-xs sm:text-sm text-gray-900 break-all">{patient.email}</p>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Name:</span>
+                      <p className="text-sm sm:text-base text-gray-900">{patient.name}</p>
                     </div>
-                    {patient.phone && (
-                      <div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">Phone:</span>
-                        <p className="text-sm sm:text-base text-gray-900">{patient.phone}</p>
-                      </div>
-                    )}
+                  )}
+                  {patient.age && (
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Age:</span>
+                      <p className="text-sm sm:text-base text-gray-900">{patient.age} years</p>
+                    </div>
+                  )}
+                  {patient.gender && (
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Gender:</span>
+                      <p className="text-sm sm:text-base text-gray-900">{patient.gender}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-xs sm:text-sm font-medium text-gray-500">Email:</span>
+                    <p className="text-xs sm:text-sm text-gray-900 break-all">{patient.email}</p>
+                  </div>
+                  {patient.phone && (
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Phone:</span>
+                      <p className="text-sm sm:text-base text-gray-900">{patient.phone}</p>
+                    </div>
+                  )}
                     {patient.address && (
                       <div>
                         <span className="text-xs sm:text-sm font-medium text-gray-500">Address:</span>
@@ -883,11 +886,11 @@ This is a simulated export. In a real application, this would generate a ${forma
                       </div>
                     )}
                     {!patient.name && !patient.age && !patient.gender && !patient.phone && !patient.email && !patient.address && (
-                      <div className="text-sm text-gray-500 italic">
+                    <div className="text-sm text-gray-500 italic">
                         Complete your profile by clicking "Edit Profile"
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </div>
                 )}
               </div>
               
@@ -899,15 +902,15 @@ This is a simulated export. In a real application, this would generate a ${forma
                 {/* Family Members button - top right */}
                 <div className="absolute top-0 right-0">
                   {!isEditingProfile && (
-                    <Button 
-                      onClick={() => navigate("/family")}
-                      variant="outline"
-                      size="sm"
-                      className="border-medical-200 text-medical-700 hover:bg-medical-50 w-full sm:w-auto text-xs sm:text-sm"
-                    >
-                      <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                      View Family
-                    </Button>
+                  <Button 
+                    onClick={() => navigate("/family")}
+                    variant="outline"
+                    size="sm"
+                    className="border-medical-200 text-medical-700 hover:bg-medical-50 w-full sm:w-auto text-xs sm:text-sm"
+                  >
+                    <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    View Family
+                  </Button>
                   )}
                 </div>
                 
@@ -1030,39 +1033,39 @@ This is a simulated export. In a real application, this would generate a ${forma
                   </div>
                 ) : (
                   <div className="space-y-2 sm:space-y-3 pb-16">
-                    {patient.bloodType && (
-                      <div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">Blood Type:</span>
-                        <p className="text-sm sm:text-base text-gray-900">{patient.bloodType}</p>
+                  {patient.bloodType && (
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Blood Type:</span>
+                      <p className="text-sm sm:text-base text-gray-900">{patient.bloodType}</p>
+                    </div>
+                  )}
+                  {patient.allergies && patient.allergies.length > 0 ? (
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Allergies:</span>
+                      <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
+                        {patient.allergies.map((allergy, index) => (
+                          <Badge key={index} variant="destructive" className="text-xs">{allergy}</Badge>
+                        ))}
                       </div>
-                    )}
-                    {patient.allergies && patient.allergies.length > 0 ? (
-                      <div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">Allergies:</span>
-                        <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
-                          {patient.allergies.map((allergy, index) => (
-                            <Badge key={index} variant="destructive" className="text-xs">{allergy}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">Allergies:</span>
-                        <p className="text-xs sm:text-sm text-gray-500 italic">None specified</p>
-                      </div>
-                    )}
-                    {patient.emergencyContact && (
-                      <div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-500">Emergency Contact:</span>
-                        <p className="text-xs sm:text-sm text-gray-900">{patient.emergencyContact}</p>
-                      </div>
-                    )}
+                    </div>
+                  ) : (
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Allergies:</span>
+                      <p className="text-xs sm:text-sm text-gray-500 italic">None specified</p>
+                    </div>
+                  )}
+                  {patient.emergencyContact && (
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Emergency Contact:</span>
+                      <p className="text-xs sm:text-sm text-gray-900">{patient.emergencyContact}</p>
+                    </div>
+                  )}
                     {(!patient.bloodType && !patient.emergencyContact && (!patient.allergies || patient.allergies.length === 0)) && (
-                      <div className="text-sm text-gray-500 italic">
-                        Medical information not yet provided
-                      </div>
-                    )}
-                  </div>
+                    <div className="text-sm text-gray-500 italic">
+                      Medical information not yet provided
+                    </div>
+                  )}
+                </div>
                 )}
               </div>
             </div>
@@ -2158,4 +2161,7 @@ This is a simulated export. In a real application, this would generate a ${forma
       </div>
     </PageTransition>
   );
-}
+});
+
+Profile.displayName = "Profile";
+export default Profile;

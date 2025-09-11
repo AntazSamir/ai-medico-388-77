@@ -1,0 +1,225 @@
+/* Mobile Performance Optimizations */
+
+/* Reduce motion for low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Optimize scrolling performance */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 640px) {
+  /* Reduce shadows and effects on mobile for better performance */
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Optimize blur effects */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(2px);
+  }
+  
+  .backdrop-blur-md {
+    backdrop-filter: blur(4px);
+  }
+  
+  /* Reduce complex gradients on mobile */
+  .bg-gradient-to-br {
+    background: linear-gradient(135deg, var(--tw-gradient-stops));
+  }
+  
+  /* Optimize text rendering */
+  body {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Reduce layout thrashing */
+  .transform {
+    will-change: transform;
+  }
+  
+  /* Optimize images */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Remove hover effects on touch devices */
+  .hover\:bg-gray-50:hover {
+    background-color: transparent;
+  }
+  
+  .hover\:text-foreground:hover {
+    color: inherit;
+  }
+  
+  /* Add active states for touch feedback */
+  button:active,
+  [role="button"]:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Performance optimizations for low-end devices */
+@media (max-width: 480px) {
+  /* Reduce animations */
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  /* Simplify transitions */
+  .transition-all {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  
+  /* Reduce complex layouts */
+  .grid {
+    display: block;
+  }
+  
+  .grid > * {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Safe area handling for mobile devices */
+.safe-area-padding {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Optimize for mobile viewport */
+@supports (height: 100dvh) {
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+  
+  .h-screen {
+    height: 100dvh;
+  }
+}
+
+/* Reduce paint complexity on mobile */
+@media (max-width: 768px) {
+  /* Simplify glass effects */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Reduce complex borders */
+  .border {
+    border-width: 1px;
+  }
+  
+  /* Optimize rounded corners */
+  .rounded-lg {
+    border-radius: 0.5rem;
+  }
+  
+  .rounded-xl {
+    border-radius: 0.75rem;
+  }
+}
+
+/* Memory optimization for mobile */
+@media (max-width: 640px) {
+  /* Limit concurrent animations */
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Reduce memory usage for large lists */
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  /* Optimize flex layouts */
+  .flex {
+    display: flex;
+  }
+  
+  .flex-col {
+    flex-direction: column;
+  }
+  
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+}
+
+/* Critical CSS for above-the-fold content */
+@media (max-width: 640px) {
+  /* Ensure critical elements are visible immediately */
+  .nav-button {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.15s ease-out;
+  }
+  
+  /* Optimize button interactions */
+  .btn-hover-lift {
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+  }
+  
+  .btn-hover-lift:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Reduce layout shifts */
+@media (max-width: 640px) {
+  /* Prevent layout shifts from images */
+  img {
+    height: auto;
+    max-width: 100%;
+  }
+  
+  /* Stabilize card layouts */
+  .card {
+    min-height: 120px;
+  }
+  
+  /* Prevent text layout shifts */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+  }
+  
+  p {
+    line-height: 1.5;
+  }
+}

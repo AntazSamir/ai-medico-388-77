@@ -14,14 +14,16 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useCallback, memo, useMemo } from "react";
+import { useMobilePerformance } from "@/hooks/use-mobile-performance";
 
-const Navigation = () => {
+const Navigation = memo(() => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isMobile, throttle } = useMobilePerformance();
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -32,9 +34,17 @@ const Navigation = () => {
       console.error("Error logging out:", error);
       toast.error("Error logging out");
     }
-  };
+  }, [navigate]);
 
-  const navItems = [
+  // Throttled menu toggle for better mobile performance
+  const throttledToggleMenu = useCallback(
+    throttle(() => {
+      setMobileMenuOpen(prev => !prev);
+    }, 150),
+    [throttle]
+  );
+
+  const navItems = useMemo(() => [
     {
       name: "Dashboard",
       href: "/dashboard",
@@ -55,7 +65,7 @@ const Navigation = () => {
       href: "/profile",
       icon: UserCircle,
     },
-  ];
+  ], []);
 
   return (
     <nav className="bg-background border-b border-border relative z-20 sticky top-0">
@@ -125,7 +135,7 @@ const Navigation = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={throttledToggleMenu}
               className="nav-button text-muted-foreground p-2 transition-all duration-150 ease-out hover:text-foreground hover:bg-gray-50"
               aria-label="Toggle mobile menu"
             >
@@ -171,4 +181,5 @@ const Navigation = () => {
   );
 };
 
+Navigation.displayName = "Navigation";
 export default Navigation;
