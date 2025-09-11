@@ -4,10 +4,9 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Safe service worker registration (production-only)
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+// Disable service worker completely and clean up any existing ones
+if ('serviceWorker' in navigator) {
 	window.addEventListener('load', () => {
-		// Unregister ALL existing workers to avoid stale caches/blank screens
 		navigator.serviceWorker.getRegistrations?.()
 			.then(async (registrations) => {
 				await Promise.all(
@@ -18,16 +17,7 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 					})
 				);
 			})
-			.catch(() => {})
-			.then(() => {
-				return navigator.serviceWorker.register('/sw.js')
-					.then((registration) => {
-						console.log('Service Worker registered:', registration.scope);
-					})
-					.catch((error) => {
-						console.warn('Service Worker registration failed:', error);
-					});
-			});
+			.catch(() => {});
 	});
 }
 
