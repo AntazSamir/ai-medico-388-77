@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppBackgroundPaths } from "@/components/ui/app-background-paths";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import TestComponent from "@/components/TestComponent";
 
 // Lazy load pages for better mobile performance and code splitting
 const Login = lazy(() => import("./pages/Login"));
@@ -69,7 +68,7 @@ function App() {
                   <Route path="/background-showcase" element={<BackgroundShowcase />} />
                   <Route path="/debug-background" element={<DebugBackground />} />
                   <Route path="/debug/email" element={<EmailDebug />} />
-                  <Route path="/dashboard" element={<TestComponent />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/symptoms" element={<Symptoms />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/family" element={<FamilyMembers />} />

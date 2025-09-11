@@ -33,7 +33,6 @@ import { toast } from "sonner";
 import { RecentActivityManager, ActivityItem } from "../utils/recentActivity";
 import { PrescriptionDialog } from "@/components/prescriptions/PrescriptionDialog";
 import { Prescription } from "@/components/prescriptions/PrescriptionCard";
-import { useMobilePerformance } from "@/hooks/use-mobile-performance";
 
 // Mock prescriptions data - same as Medications page
 const mockPrescriptions: Record<string, Prescription[]> = {
@@ -136,7 +135,6 @@ const mockFamilyMembers = [
 const Dashboard = memo(() => {
   console.log('Dashboard component rendering...');
   const navigate = useNavigate();
-  const { isMobile, isLowEndDevice, shouldReduceMotion, debounce } = useMobilePerformance();
   
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
@@ -162,29 +160,26 @@ const Dashboard = memo(() => {
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
-  // Debounced function for loading recent activity
-  const debouncedLoadActivity = useCallback(
-    debounce(() => {
-      const activity = RecentActivityManager.getRecentActivity();
-      setRecentActivity(activity);
-    }, 100),
-    [debounce]
-  );
+  // Load recent activity
+  const loadActivity = useCallback(() => {
+    const activity = RecentActivityManager.getRecentActivity();
+    setRecentActivity(activity);
+  }, []);
 
   // Load recent activity on component mount
   useEffect(() => {
-    debouncedLoadActivity();
+    loadActivity();
     
     // Listen for storage changes to update activity in real-time
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'recentActivity') {
-        debouncedLoadActivity();
+        loadActivity();
       }
     };
     
     // Listen for focus events to refresh activity when returning to tab
     const handleFocus = () => {
-      debouncedLoadActivity();
+      loadActivity();
     };
     
     window.addEventListener('storage', handleStorageChange);
@@ -194,7 +189,7 @@ const Dashboard = memo(() => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [debouncedLoadActivity]);
+  }, [loadActivity]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -368,53 +363,50 @@ const Dashboard = memo(() => {
       
       <Navigation />
       
-      <main className="safe-area-padding max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-8 relative z-10">
-        {/* Header - Mobile responsive */}
-        <div className="mb-6 sm:mb-8">
+      <main className="max-w-7xl mx-auto py-6 px-4 relative z-10">
+        {/* Header */}
+        <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-medical-700 mb-2">
+              <h1 className="text-3xl font-bold text-medical-700 mb-2">
                 Welcome back!
               </h1>
-              <p className="text-sm sm:text-base text-medical-600 hidden sm:block">
+              <p className="text-base text-medical-600">
                 Here's an overview of your health tracking data.
-              </p>
-              <p className="text-sm text-medical-600 block sm:hidden">
-                Your health overview
               </p>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions - Mobile optimized */}
-        <div className="space-y-4 sm:space-y-6">
-          {/* Quick Action Buttons - Mobile First */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <Button asChild className="h-20 sm:h-24 flex-col bg-medical-500 hover:bg-medical-600 text-white btn-press rounded-xl">
+        {/* Quick Actions */}
+        <div className="space-y-6">
+          {/* Quick Action Buttons */}
+          <div className="grid grid-cols-4 gap-4">
+            <Button asChild className="h-24 flex-col bg-medical-500 hover:bg-medical-600 text-white rounded-xl">
               <Link to="/symptoms">
-                <Activity className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-                <span className="text-xs sm:text-sm font-medium">Track Symptoms</span>
+                <Activity className="h-6 w-6 mb-2" />
+                <span className="text-sm font-medium">Track Symptoms</span>
               </Link>
             </Button>
             
-            <Button asChild variant="outline" className="h-20 sm:h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 btn-press rounded-xl">
+            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl">
               <Link to="/family">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-                <span className="text-xs sm:text-sm font-medium">Family</span>
+                <Users className="h-6 w-6 mb-2" />
+                <span className="text-sm font-medium">Family</span>
               </Link>
             </Button>
             
-            <Button asChild variant="outline" className="h-20 sm:h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 btn-press rounded-xl">
+            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl">
               <Link to="/profile">
-                <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-                <span className="text-xs sm:text-sm font-medium">Profile</span>
+                <FileText className="h-6 w-6 mb-2" />
+                <span className="text-sm font-medium">Profile</span>
               </Link>
             </Button>
             
-            <Button asChild variant="outline" className="h-20 sm:h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 btn-press rounded-xl">
+            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl">
               <Link to="/medications">
-                <Pill className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-                <span className="text-xs sm:text-sm font-medium">Meds</span>
+                <Pill className="h-6 w-6 mb-2" />
+                <span className="text-sm font-medium">Meds</span>
               </Link>
             </Button>
           </div>
