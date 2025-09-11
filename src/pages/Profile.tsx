@@ -770,9 +770,13 @@ This is a simulated export. In a real application, this would generate a ${forma
           {/* Patient Info - Mobile responsive grid */}
           <Card className="glass-card p-4 sm:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
+              <div className="relative">
+                <div className="mb-3 sm:mb-4">
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Personal Information</h2>
+                </div>
+                
+                {/* Edit button positioned at bottom right */}
+                <div className="absolute bottom-0 right-0">
                   {!isEditingProfile ? (
                     <Button 
                       onClick={handleEditProfile}
@@ -804,7 +808,7 @@ This is a simulated export. In a real application, this would generate a ${forma
                 </div>
                 
                 {isEditingProfile ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 pb-16">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -875,7 +879,7 @@ This is a simulated export. In a real application, this would generate a ${forma
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2 sm:space-y-3">
+                  <div className="space-y-2 sm:space-y-3 pb-16">
                     {patient.name && (
                       <div>
                         <span className="text-xs sm:text-sm font-medium text-gray-500">Name:</span>
