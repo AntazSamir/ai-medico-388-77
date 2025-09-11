@@ -1,6 +1,9 @@
 {
   "buildCommand": "vite build",
   "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/", "destination": "/login", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
