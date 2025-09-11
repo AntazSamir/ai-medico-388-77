@@ -382,32 +382,32 @@ const Dashboard = memo(() => {
         <div className="space-y-6">
           {/* Quick Action Buttons */}
           <div className="grid grid-cols-4 gap-4">
-            <Button asChild className="h-24 flex-col bg-medical-500 hover:bg-medical-600 text-white rounded-xl">
-              <Link to="/symptoms">
-                <Activity className="h-6 w-6 mb-2" />
-                <span className="text-sm font-medium sm:hidden">Symptoms</span>
-                <span className="text-sm font-medium hidden sm:inline">Track Symptoms</span>
+            <Button asChild className="h-24 flex-col bg-medical-500 hover:bg-medical-600 text-white rounded-xl fluid-btn">
+              <Link to="/symptoms" className="flex flex-col items-center fluid-gap">
+                <Activity className="mb-2 fluid-icon" />
+                <span className="text-sm font-medium sm:hidden fluid-text">Symptoms</span>
+                <span className="text-sm font-medium hidden sm:inline fluid-text">Track Symptoms</span>
               </Link>
             </Button>
             
-            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl">
-              <Link to="/family">
-                <Users className="h-6 w-6 mb-2" />
-                <span className="text-sm font-medium">Family</span>
+            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl fluid-btn">
+              <Link to="/family" className="flex flex-col items-center fluid-gap">
+                <Users className="mb-2 fluid-icon" />
+                <span className="text-sm font-medium fluid-text">Family</span>
               </Link>
             </Button>
             
-            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl">
-              <Link to="/profile">
-                <FileText className="h-6 w-6 mb-2" />
-                <span className="text-sm font-medium">Profile</span>
+            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl fluid-btn">
+              <Link to="/profile" className="flex flex-col items-center fluid-gap">
+                <FileText className="mb-2 fluid-icon" />
+                <span className="text-sm font-medium fluid-text">Profile</span>
               </Link>
             </Button>
             
-            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl">
-              <Link to="/medications">
-                <Pill className="h-6 w-6 mb-2" />
-                <span className="text-sm font-medium">Meds</span>
+            <Button asChild variant="outline" className="h-24 flex-col border-medical-200 text-medical-700 hover:bg-medical-50 rounded-xl fluid-btn">
+              <Link to="/medications" className="flex flex-col items-center fluid-gap">
+                <Pill className="mb-2 fluid-icon" />
+                <span className="text-sm font-medium fluid-text">Meds</span>
               </Link>
             </Button>
           </div>
