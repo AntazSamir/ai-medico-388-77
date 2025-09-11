@@ -8,23 +8,26 @@ import "./index.css";
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 	window.addEventListener('load', () => {
 		// Unregister ALL existing workers to avoid stale caches/blank screens
-		navigator.serviceWorker.getRegistrations?.().then(async (registrations) => {
-			await Promise.all(
-				registrations.map(async (registration) => {
-					try {
-						await registration.unregister();
-					} catch (_) {}
-				})
-			);
-		}).finally(() => {
-			navigator.serviceWorker.register('/sw.js')
-				.then((registration) => {
-					console.log('Service Worker registered:', registration.scope);
-				})
-				.catch((error) => {
-					console.warn('Service Worker registration failed:', error);
-				});
-		});
+		navigator.serviceWorker.getRegistrations?.()
+			.then(async (registrations) => {
+				await Promise.all(
+					registrations.map(async (registration) => {
+						try {
+							await registration.unregister();
+						} catch (_) {}
+					})
+				);
+			})
+			.catch(() => {})
+			.then(() => {
+				return navigator.serviceWorker.register('/sw.js')
+					.then((registration) => {
+						console.log('Service Worker registered:', registration.scope);
+					})
+					.catch((error) => {
+						console.warn('Service Worker registration failed:', error);
+					});
+			});
 	});
 }
 
