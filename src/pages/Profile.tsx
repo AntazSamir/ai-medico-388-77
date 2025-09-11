@@ -158,6 +158,11 @@ export default function Profile() {
   const [showRecordDialog, setShowRecordDialog] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [showPrescriptions, setShowPrescriptions] = useState(true);
+  
+  // Profile editing states
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileFormData, setProfileFormData] = useState(defaultPatient);
+  
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([
     {
       id: "1",
@@ -669,6 +674,49 @@ This is a simulated export. In a real application, this would generate a ${forma
     prescriptionForm.reset();
   };
 
+  // Profile editing functions
+  const handleEditProfile = () => {
+    setIsEditingProfile(true);
+    setProfileFormData(patient);
+  };
+
+  const handleSaveProfile = () => {
+    setPatient(profileFormData);
+    setIsEditingProfile(false);
+    toast({
+      title: "Success",
+      description: "Profile updated successfully",
+    });
+  };
+
+  const handleCancelEditProfile = () => {
+    setIsEditingProfile(false);
+    setProfileFormData(patient);
+  };
+
+  const handleProfileFieldChange = (field: string, value: string) => {
+    setProfileFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleAllergyAdd = (allergy: string) => {
+    if (allergy.trim() && !profileFormData.allergies.includes(allergy.trim())) {
+      setProfileFormData(prev => ({
+        ...prev,
+        allergies: [...prev.allergies, allergy.trim()]
+      }));
+    }
+  };
+
+  const handleAllergyRemove = (allergyToRemove: string) => {
+    setProfileFormData(prev => ({
+      ...prev,
+      allergies: prev.allergies.filter(allergy => allergy !== allergyToRemove)
+    }));
+  };
+
   if (loading) {
     return (
       <PageTransition>
@@ -723,102 +771,293 @@ This is a simulated export. In a real application, this would generate a ${forma
           <Card className="glass-card p-4 sm:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Personal Information</h2>
-                <div className="space-y-2 sm:space-y-3">
-                  {patient.name && (
-                    <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Name:</span>
-                      <p className="text-sm sm:text-base text-gray-900">{patient.name}</p>
-                    </div>
-                  )}
-                  {patient.age && (
-                    <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Age:</span>
-                      <p className="text-sm sm:text-base text-gray-900">{patient.age} years</p>
-                    </div>
-                  )}
-                  {patient.gender && (
-                    <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Gender:</span>
-                      <p className="text-sm sm:text-base text-gray-900">{patient.gender}</p>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-xs sm:text-sm font-medium text-gray-500">Email:</span>
-                    <p className="text-xs sm:text-sm text-gray-900 break-all">{patient.email}</p>
-                  </div>
-                  {patient.phone && (
-                    <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Phone:</span>
-                      <p className="text-sm sm:text-base text-gray-900">{patient.phone}</p>
-                    </div>
-                  )}
-                  {!patient.name && !patient.age && !patient.gender && !patient.phone && (
-                    <div className="text-sm text-gray-500 italic">
-                      Complete your profile by updating your account information
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Personal Information</h2>
+                  {!isEditingProfile ? (
+                    <Button 
+                      onClick={handleEditProfile}
+                      variant="outline"
+                      size="sm"
+                      className="text-medical-600 border-medical-200 hover:bg-medical-50"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handleSaveProfile}
+                        size="sm"
+                        className="bg-medical-500 hover:bg-medical-600"
+                      >
+                        Save Changes
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleCancelEditProfile}
+                      >
+                        Cancel
+                      </Button>
                     </div>
                   )}
                 </div>
+                
+                {isEditingProfile ? (
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <Input
+                          value={profileFormData.name}
+                          onChange={(e) => handleProfileFieldChange('name', e.target.value)}
+                          placeholder="Enter your full name"
+                          className="border-gray-300 focus:border-medical-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                        <Input
+                          value={profileFormData.age}
+                          onChange={(e) => handleProfileFieldChange('age', e.target.value)}
+                          placeholder="Enter your age"
+                          className="border-gray-300 focus:border-medical-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                        <select
+                          value={profileFormData.gender}
+                          onChange={(e) => handleProfileFieldChange('gender', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-medical-500"
+                        >
+                          <option value="">Select gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                          <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <Input
+                          value={profileFormData.phone}
+                          onChange={(e) => handleProfileFieldChange('phone', e.target.value)}
+                          placeholder="Enter your phone number"
+                          className="border-gray-300 focus:border-medical-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                      <Input
+                        value={profileFormData.email}
+                        onChange={(e) => handleProfileFieldChange('email', e.target.value)}
+                        placeholder="Enter your email address"
+                        type="email"
+                        className="border-gray-300 focus:border-medical-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                      <Textarea
+                        value={profileFormData.address}
+                        onChange={(e) => handleProfileFieldChange('address', e.target.value)}
+                        placeholder="Enter your address"
+                        rows={3}
+                        className="border-gray-300 focus:border-medical-500"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2 sm:space-y-3">
+                    {patient.name && (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Name:</span>
+                        <p className="text-sm sm:text-base text-gray-900">{patient.name}</p>
+                      </div>
+                    )}
+                    {patient.age && (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Age:</span>
+                        <p className="text-sm sm:text-base text-gray-900">{patient.age} years</p>
+                      </div>
+                    )}
+                    {patient.gender && (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Gender:</span>
+                        <p className="text-sm sm:text-base text-gray-900">{patient.gender}</p>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-500">Email:</span>
+                      <p className="text-xs sm:text-sm text-gray-900 break-all">{patient.email}</p>
+                    </div>
+                    {patient.phone && (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Phone:</span>
+                        <p className="text-sm sm:text-base text-gray-900">{patient.phone}</p>
+                      </div>
+                    )}
+                    {patient.address && (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Address:</span>
+                        <p className="text-xs sm:text-sm text-gray-900">{patient.address}</p>
+                      </div>
+                    )}
+                    {!patient.name && !patient.age && !patient.gender && !patient.phone && !patient.email && !patient.address && (
+                      <div className="text-sm text-gray-500 italic">
+                        Complete your profile by clicking "Edit Profile"
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               
               <div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Medical Information</h2>
-                  <Button 
-                    onClick={() => navigate("/family")}
-                    variant="outline"
-                    size="sm"
-                    className="border-medical-200 text-medical-700 hover:bg-medical-50 w-full sm:w-auto text-xs sm:text-sm"
-                  >
-                    <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    View Family
-                  </Button>
+                  <div className="flex gap-2">
+                    {!isEditingProfile && (
+                      <Button 
+                        onClick={() => navigate("/family")}
+                        variant="outline"
+                        size="sm"
+                        className="border-medical-200 text-medical-700 hover:bg-medical-50 w-full sm:w-auto text-xs sm:text-sm"
+                      >
+                        <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        View Family
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="mb-3">
                   <p className="text-xs text-medical-600">
                     Family section includes sample profiles to demonstrate the platform's capabilities
                   </p>
                 </div>
-                <div className="space-y-2 sm:space-y-3">
-                  {patient.bloodType && (
+                
+                {isEditingProfile ? (
+                  <div className="space-y-4">
                     <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Blood Type:</span>
-                      <p className="text-sm sm:text-base text-gray-900">{patient.bloodType}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>
+                      <select
+                        value={profileFormData.bloodType}
+                        onChange={(e) => handleProfileFieldChange('bloodType', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-medical-500"
+                      >
+                        <option value="">Select blood type</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
                     </div>
-                  )}
-                  {patient.allergies && patient.allergies.length > 0 ? (
+                    
                     <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Allergies:</span>
-                      <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
-                        {patient.allergies.map((allergy, index) => (
-                          <Badge key={index} variant="destructive" className="text-xs">{allergy}</Badge>
-                        ))}
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Allergies</label>
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Add an allergy"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const input = e.target as HTMLInputElement;
+                                handleAllergyAdd(input.value);
+                                input.value = '';
+                              }
+                            }}
+                            className="border-gray-300 focus:border-medical-500"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              const input = document.querySelector('input[placeholder="Add an allergy"]') as HTMLInputElement;
+                              if (input) {
+                                handleAllergyAdd(input.value);
+                                input.value = '';
+                              }
+                            }}
+                            size="sm"
+                            className="bg-medical-500 hover:bg-medical-600"
+                          >
+                            Add
+                          </Button>
+                        </div>
+                        {profileFormData.allergies.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {profileFormData.allergies.map((allergy, index) => (
+                              <Badge key={index} variant="destructive" className="text-xs flex items-center gap-1">
+                                {allergy}
+                                <button
+                                  onClick={() => handleAllergyRemove(allergy)}
+                                  className="ml-1 hover:bg-red-600 rounded-full p-0.5"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ) : (
+                    
                     <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Allergies:</span>
-                      <p className="text-xs sm:text-sm text-gray-500 italic">None specified</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
+                      <Input
+                        value={profileFormData.emergencyContact}
+                        onChange={(e) => handleProfileFieldChange('emergencyContact', e.target.value)}
+                        placeholder="Emergency contact name and phone"
+                        className="border-gray-300 focus:border-medical-500"
+                      />
                     </div>
-                  )}
-                  {patient.emergencyContact && (
-                    <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Emergency Contact:</span>
-                      <p className="text-xs sm:text-sm text-gray-900">{patient.emergencyContact}</p>
-                    </div>
-                  )}
-                  {patient.address && (
-                    <div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">Address:</span>
-                      <p className="text-xs sm:text-sm text-gray-900">{patient.address}</p>
-                    </div>
-                  )}
-                  {(!patient.bloodType && !patient.emergencyContact && !patient.address) && (
-                    <div className="text-sm text-gray-500 italic">
-                      Medical information not yet provided
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2 sm:space-y-3">
+                    {patient.bloodType && (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Blood Type:</span>
+                        <p className="text-sm sm:text-base text-gray-900">{patient.bloodType}</p>
+                      </div>
+                    )}
+                    {patient.allergies && patient.allergies.length > 0 ? (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Allergies:</span>
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
+                          {patient.allergies.map((allergy, index) => (
+                            <Badge key={index} variant="destructive" className="text-xs">{allergy}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Allergies:</span>
+                        <p className="text-xs sm:text-sm text-gray-500 italic">None specified</p>
+                      </div>
+                    )}
+                    {patient.emergencyContact && (
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-500">Emergency Contact:</span>
+                        <p className="text-xs sm:text-sm text-gray-900">{patient.emergencyContact}</p>
+                      </div>
+                    )}
+                    {(!patient.bloodType && !patient.emergencyContact && (!patient.allergies || patient.allergies.length === 0)) && (
+                      <div className="text-sm text-gray-500 italic">
+                        Medical information not yet provided
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </Card>
