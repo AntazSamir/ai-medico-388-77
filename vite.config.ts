@@ -7,7 +7,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },
+  esbuild: {
+    keepNames: true,
+  },
   build: {
+    minify: 'esbuild',
     sourcemap: mode === 'development',
   },
 }));
