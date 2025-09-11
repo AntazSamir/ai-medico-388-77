@@ -770,45 +770,13 @@ This is a simulated export. In a real application, this would generate a ${forma
           {/* Patient Info - Mobile responsive grid */}
           <Card className="glass-card p-4 sm:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <div className="relative">
+              <div>
                 <div className="mb-3 sm:mb-4">
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Personal Information</h2>
                 </div>
                 
-                {/* Edit button positioned at bottom right */}
-                <div className="absolute bottom-0 right-0">
-                  {!isEditingProfile ? (
-                    <Button 
-                      onClick={handleEditProfile}
-                      variant="outline"
-                      size="sm"
-                      className="text-medical-600 border-medical-200 hover:bg-medical-50"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={handleSaveProfile}
-                        size="sm"
-                        className="bg-medical-500 hover:bg-medical-600"
-                      >
-                        Save Changes
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleCancelEditProfile}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                
                 {isEditingProfile ? (
-                  <div className="space-y-4 pb-16">
+                  <div className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -879,7 +847,7 @@ This is a simulated export. In a real application, this would generate a ${forma
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2 sm:space-y-3 pb-16">
+                  <div className="space-y-2 sm:space-y-3">
                     {patient.name && (
                       <div>
                         <span className="text-xs sm:text-sm font-medium text-gray-500">Name:</span>
@@ -923,22 +891,56 @@ This is a simulated export. In a real application, this would generate a ${forma
                 )}
               </div>
               
-              <div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
+              <div className="relative">
+                <div className="mb-3 sm:mb-4">
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Medical Information</h2>
-                  <div className="flex gap-2">
-                    {!isEditingProfile && (
+                </div>
+                
+                {/* Family Members button - top right */}
+                <div className="absolute top-0 right-0">
+                  {!isEditingProfile && (
+                    <Button 
+                      onClick={() => navigate("/family")}
+                      variant="outline"
+                      size="sm"
+                      className="border-medical-200 text-medical-700 hover:bg-medical-50 w-full sm:w-auto text-xs sm:text-sm"
+                    >
+                      <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      View Family
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Edit button positioned at bottom right */}
+                <div className="absolute bottom-0 right-0">
+                  {!isEditingProfile ? (
+                    <Button 
+                      onClick={handleEditProfile}
+                      variant="outline"
+                      size="sm"
+                      className="text-medical-600 border-medical-200 hover:bg-medical-50"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
                       <Button 
-                        onClick={() => navigate("/family")}
-                        variant="outline"
+                        onClick={handleSaveProfile}
                         size="sm"
-                        className="border-medical-200 text-medical-700 hover:bg-medical-50 w-full sm:w-auto text-xs sm:text-sm"
+                        className="bg-medical-500 hover:bg-medical-600"
                       >
-                        <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                        View Family
+                        Save Changes
                       </Button>
-                    )}
-                  </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleCancelEditProfile}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <div className="mb-3">
                   <p className="text-xs text-medical-600">
@@ -947,7 +949,7 @@ This is a simulated export. In a real application, this would generate a ${forma
                 </div>
                 
                 {isEditingProfile ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 pb-16">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>
                       <select
@@ -1027,7 +1029,7 @@ This is a simulated export. In a real application, this would generate a ${forma
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2 sm:space-y-3">
+                  <div className="space-y-2 sm:space-y-3 pb-16">
                     {patient.bloodType && (
                       <div>
                         <span className="text-xs sm:text-sm font-medium text-gray-500">Blood Type:</span>
