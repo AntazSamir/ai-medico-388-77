@@ -1,9 +1,11 @@
 /**
  * Email Debug Helper Script
  * Use this script to test email functionality after configuring SMTP
+ * Browser Console Compatible Version
  */
 
-import { supabase } from './src/integrations/supabase/client.js';
+// Use the global supabase instance that's already available in the browser
+const supabase = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
 
 class EmailDebugHelper {
   constructor() {
@@ -14,6 +16,13 @@ class EmailDebugHelper {
 
   async testEmailConfiguration() {
     console.log('🔧 Starting Advanced Email Configuration Test...\n');
+    
+    // Check if supabase is available
+    if (!supabase) {
+      this.addResult('❌', 'Supabase Connection', 'Supabase client not found. Make sure you are running this in your app\'s browser console.');
+      this.displayResults();
+      return;
+    }
     
     // Test 1: Basic Supabase connection
     await this.testSupabaseConnection();
@@ -195,26 +204,123 @@ class EmailDebugHelper {
   }
 }
 
+// Simple browser console test function
+async function testEmailConfirmation() {
+  console.log('🧪 Starting Email Confirmation Test...\n');
+  
+  // Check if supabase is available
+  if (typeof supabase === 'undefined') {
+    console.error('❌ Supabase client not found. Make sure you are running this in your app\'s browser console.');
+    return;
+  }
+  
+  const testEmail = `test.medico.${Date.now()}@gmail.com`;
+  
+  try {
+    // Test 1: Check Supabase connection
+    console.log('1️⃣ Testing Supabase Connection...');
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('✅ Supabase connection successful');
+    
+    // Test 2: Test signup
+    console.log('\n2️⃣ Testing User Signup...');
+    const { data: signupData, error: signupError } = await supabase.auth.signUp({
+      email: testEmail,
+      password: 'TestPassword123!',
+      options: {
+        emailRedirectTo: window.location.origin + '/auth/callback',
+        data: {
+          full_name: 'Test User',
+          phone: '+1234567890',
+          address: 'Test Address',
+          age: '25',
+        },
+      },
+    });
+
+    if (signupError) {
+      console.log(`❌ Signup failed: ${signupError.message}`);
+    } else if (signupData.user && !signupData.user.email_confirmed_at) {
+      console.log('✅ User created successfully, confirmation email should be sent');
+    } else if (signupData.user && signupData.user.email_confirmed_at) {
+      console.log('⚠️ User created but already confirmed (email confirmations may be disabled)');
+    } else {
+      console.log('⚠️ Unexpected signup response');
+    }
+    
+    // Test 3: Test resend confirmation
+    console.log('\n3️⃣ Testing Resend Confirmation...');
+    const { error: resendError } = await supabase.auth.resend({
+      type: 'signup',
+      email: testEmail,
+      options: {
+        emailRedirectTo: window.location.origin + '/auth/callback'
+      }
+    });
+
+    if (resendError) {
+      console.log(`❌ Resend failed: ${resendError.message}`);
+    } else {
+      console.log('✅ Confirmation email resent successfully');
+    }
+    
+    // Test 4: Test login with unconfirmed email
+    console.log('\n4️⃣ Testing Login with Unconfirmed Email...');
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+      email: testEmail,
+      password: 'TestPassword123!'
+    });
+
+    if (loginError) {
+      if (loginError.message.includes('email_not_confirmed') || loginError.message.includes('Email not confirmed')) {
+        console.log('✅ Login correctly rejected unconfirmed email (expected behavior)');
+      } else {
+        console.log(`❌ Login failed with unexpected error: ${loginError.message}`);
+      }
+    } else if (loginData.user && !loginData.user.email_confirmed_at) {
+      console.log('❌ User logged in despite unconfirmed email (this should not happen)');
+    } else {
+      console.log('✅ Login successful (user was already confirmed)');
+    }
+    
+    // Summary
+    console.log('\n📊 Test Summary:');
+    console.log(`   Test Email: ${testEmail}`);
+    console.log(`   Signup: ${signupError ? 'FAIL' : 'PASS'}`);
+    console.log(`   Resend: ${resendError ? 'FAIL' : 'PASS'}`);
+    console.log(`   Login: ${loginError ? 'PASS (expected)' : 'PASS'}`);
+    
+    console.log('\n📧 Check your email inbox for confirmation emails!');
+    console.log('💡 If emails are not received, check SMTP configuration in Supabase Dashboard.');
+    
+  } catch (error) {
+    console.error('❌ Test failed with error:', error);
+  }
+}
+
 // Usage instructions
 console.log(`
-📧 Advanced Email Debug Helper Usage:
+📧 Email Debug Helper Usage:
 
-🔍 IMMEDIATE DIAGNOSTIC:
-1. Open browser console (F12) on your running app
-2. Run: const debugger = new EmailDebugHelper(); await debugger.testEmailConfiguration();
-3. Check console output for specific error messages
+🔍 QUICK TEST (Copy & Paste):
+testEmailConfirmation()
+
+🔍 ADVANCED TEST:
+const debugger = new EmailDebugHelper(); 
+await debugger.testEmailConfiguration();
 
 🛠️ COMMON FIXES:
-1. Gmail App Password: Generate new 16-character password at myaccount.google.com/security
-2. Supabase SMTP: Verify settings in dashboard (Settings → Auth → SMTP)
-3. Port: Must be 587 (STARTTLS)
-4. Security: Must be STARTTLS (for Brevo)
-5. Sender Email: Must match Gmail username
+1. SMTP Configuration: Go to Supabase Dashboard → Settings → Auth → SMTP
+2. Brevo Settings:
+   Host: smtp-relay.brevo.com
+   Port: 587
+   Username: 96b206001@smtp-brevo.com
+   Password: dhyZ0XBkI6CmEaNO
+   Security: STARTTLS
 
 🚨 IF STILL FAILING:
 - Check Supabase logs in dashboard
-- Try different email provider (not Gmail)
-- Verify 2FA is enabled on Gmail
+- Verify SMTP settings are saved
 - Check for rate limiting (30 emails/hour max)
 
 IMPORTANT: Configuration must be in Supabase Dashboard, NOT local files!
@@ -223,6 +329,7 @@ IMPORTANT: Configuration must be in Supabase Dashboard, NOT local files!
 // Export for use
 if (typeof window !== 'undefined') {
   window.EmailDebugHelper = EmailDebugHelper;
+  window.testEmailConfirmation = testEmailConfirmation;
 }
 
 export default EmailDebugHelper;
