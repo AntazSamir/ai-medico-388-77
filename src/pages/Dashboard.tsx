@@ -385,7 +385,8 @@ const Dashboard = memo(() => {
             <Button asChild className="h-24 flex-col bg-medical-500 hover:bg-medical-600 text-white rounded-xl">
               <Link to="/symptoms">
                 <Activity className="h-6 w-6 mb-2" />
-                <span className="text-sm font-medium">Track Symptoms</span>
+                <span className="text-sm font-medium sm:hidden">Symptoms</span>
+                <span className="text-sm font-medium hidden sm:inline">Track Symptoms</span>
               </Link>
             </Button>
             
