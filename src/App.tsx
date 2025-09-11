@@ -59,23 +59,25 @@ function App() {
             <Sonner />
             <BrowserRouter>
               <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/login" replace />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/background-showcase" element={<BackgroundShowcase />} />
-                  <Route path="/debug-background" element={<DebugBackground />} />
-                  <Route path="/debug/email" element={<EmailDebug />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/symptoms" element={<Symptoms />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/family" element={<FamilyMembers />} />
-                  <Route path="/family/:memberId" element={<FamilyMemberReportCard />} />
-                  <Route path="/medications" element={<Medications />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <div className="container-mobile safe-area-padding">
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/login" replace />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/background-showcase" element={<BackgroundShowcase />} />
+                    <Route path="/debug-background" element={<DebugBackground />} />
+                    <Route path="/debug/email" element={<EmailDebug />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/symptoms" element={<Symptoms />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/family" element={<FamilyMembers />} />
+                    <Route path="/family/:memberId" element={<FamilyMemberReportCard />} />
+                    <Route path="/medications" element={<Medications />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </div>
               </Suspense>
             </BrowserRouter>
           </AppBackgroundPaths>
