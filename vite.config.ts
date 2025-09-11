@@ -12,11 +12,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react({
       // Enable SWC optimizations for better mobile performance
-      jsxImportSource: "@emotion/react",
-      plugins: [
-        // Optimize for mobile devices
-        ["@swc/plugin-emotion", {}],
-      ],
+      jsxImportSource: "react",
     }),
     mode === 'development' &&
     componentTagger(),

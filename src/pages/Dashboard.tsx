@@ -656,11 +656,11 @@ const Dashboard = memo(() => {
           setSelectedMember(null);
         }}
         memberId={selectedMember || undefined}
-        memberName={selectedMember ? mockFamilyMembers.find(m => m.id === selectedMember)?.name : undefined}
+        memberName={selectedMember ? (mockFamilyMembers.find(m => m.id === selectedMember)?.name || undefined) : undefined}
       />
     </div>
   );
-};
+});
 
 Dashboard.displayName = "Dashboard";
 export default Dashboard;

@@ -179,7 +179,7 @@ const Navigation = memo(() => {
       )}
     </nav>
   );
-};
+});
 
 Navigation.displayName = "Navigation";
 export default Navigation;
