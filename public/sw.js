@@ -1,9 +1,9 @@
 // Mobile-optimized Service Worker for AI Medico
 // Provides offline functionality and performance improvements
 
-const CACHE_NAME = 'ai-medico-mobile-v1';
-const STATIC_CACHE_NAME = 'ai-medico-static-v1';
-const DYNAMIC_CACHE_NAME = 'ai-medico-dynamic-v1';
+const CACHE_NAME = 'ai-medico-mobile-v2';
+const STATIC_CACHE_NAME = 'ai-medico-static-v2';
+const DYNAMIC_CACHE_NAME = 'ai-medico-dynamic-v2';
 
 // Static assets to cache for offline functionality
 const STATIC_ASSETS = [
@@ -310,4 +310,4 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-console.log('Service Worker: Loaded');
+console.log('Service Worker: Loaded v2');
