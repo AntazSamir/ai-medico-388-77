@@ -40,6 +40,23 @@ export interface UniversalMedicalReport {
   recommendations?: string[];
   summary?: string | null;
   nextAppointment?: string | null;
+  // Confidence scores per top-level section/field (0.0-1.0)
+  confidence?: {
+    reportType?: number;
+    patientName?: number;
+    doctorName?: number;
+    hospitalName?: number;
+    date?: number;
+    vitalSigns?: number;
+    labResults?: number;
+    findings?: number;
+    diagnosis?: number;
+    recommendations?: number;
+    summary?: number;
+    nextAppointment?: number;
+  };
+  // Fields that were deemed uncertain during validation
+  uncertainFields?: string[];
 }
 
 

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,6 +45,78 @@ interface ExtractedReportData {
   nextAppointment?: string | null;
 }
 
+// Zod schemas for validation
+const VitalSignsSchema = z.object({
+  bloodPressure: z.string().optional(),
+  heartRate: z.string().optional(),
+  temperature: z.string().optional(),
+  weight: z.string().optional(),
+  height: z.string().optional(),
+  respiratoryRate: z.string().optional(),
+  oxygenSaturation: z.string().optional(),
+}).partial();
+
+const LabResultItemSchema = z.object({
+  testName: z.string().min(1),
+  value: z.string().min(1),
+  unit: z.string().nullable().optional(),
+  referenceRange: z.string().nullable().optional(),
+  status: z.enum(["Normal","High","Low","Critical"]).nullable().optional(),
+});
+
+const ClinicalFindingSchema = z.object({
+  category: z.string().min(1),
+  finding: z.string().optional(),
+  severity: z.enum(["Mild","Moderate","Severe"]).nullable().optional(),
+});
+
+const UniversalReportSchema = z.object({
+  reportType: z.string().min(1),
+  patientName: z.string().nullable().optional(),
+  doctorName: z.string().nullable().optional(),
+  hospitalName: z.string().nullable().optional(),
+  date: z.string().nullable().optional(),
+  vitalSigns: VitalSignsSchema.optional(),
+  labResults: z.array(LabResultItemSchema).optional(),
+  findings: z.array(ClinicalFindingSchema).optional(),
+  diagnosis: z.array(z.string()).optional(),
+  recommendations: z.array(z.string()).optional(),
+  summary: z.string().nullable().optional(),
+  nextAppointment: z.string().nullable().optional(),
+});
+
+function standardizeReportType(input: string): string {
+  const t = (input || "").toLowerCase();
+  if (/(cbc|hematology|blood)/.test(t)) return "Blood Test";
+  if (/(x[- ]?ray)/.test(t)) return "X-Ray";
+  if (/(ct|computed tomography)/.test(t)) return "CT Scan";
+  if (/(mri|magnetic resonance)/.test(t)) return "MRI";
+  if (/(ultrasound|usg|sonography)/.test(t)) return "Ultrasound";
+  if (/(ecg|electrocardiogram)/.test(t)) return "ECG";
+  if (/(pathology|biopsy|histopath)/.test(t)) return "Pathology";
+  if (/(discharge)/.test(t)) return "Discharge Summary";
+  if (/(prescription|rx)/.test(t)) return "Prescription";
+  return input || "Unknown Report";
+}
+
+function computeConfidence(clean: ExtractedReportData) {
+  const conf: Record<string, number> = {};
+  const present = (v: unknown) => (v === null || v === undefined) ? 0 : (typeof v === 'string' ? (v.trim().length > 0 ? 1 : 0) : 1);
+  conf.reportType = present(clean.reportType);
+  conf.patientName = present(clean.patientName);
+  conf.doctorName = present(clean.doctorName);
+  conf.hospitalName = present(clean.hospitalName);
+  conf.date = present(clean.date);
+  conf.vitalSigns = clean.vitalSigns && Object.values(clean.vitalSigns).some(v => present(v)) ? 0.8 : 0;
+  conf.labResults = (clean.labResults && clean.labResults.length > 0) ? 0.9 : 0;
+  conf.findings = (clean.findings && clean.findings.length > 0) ? 0.7 : 0;
+  conf.diagnosis = (clean.diagnosis && clean.diagnosis.length > 0) ? 0.8 : 0;
+  conf.recommendations = (clean.recommendations && clean.recommendations.length > 0) ? 0.6 : 0;
+  conf.summary = present(clean.summary);
+  conf.nextAppointment = present(clean.nextAppointment);
+  return conf;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -51,11 +124,11 @@ serve(async (req) => {
   }
 
   try {
-    const { imageData, mimeType } = await req.json();
+    const { imageData, mimeType, textContent } = await req.json();
 
-    if (!imageData || !mimeType) {
+    if ((!imageData || !mimeType) && !textContent) {
       return new Response(
-        JSON.stringify({ error: 'Missing imageData or mimeType' }),
+        JSON.stringify({ error: 'Missing input. Provide imageData+mimeType or textContent.' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -104,7 +177,24 @@ serve(async (req) => {
   "nextAppointment": string|null
 }`;
 
-      const dataUrl = `data:${mimeType};base64,${imageData}`;
+      const messages: unknown[] = [
+        { role: 'system', content: systemPrompt },
+      ];
+      if (textContent && typeof textContent === 'string') {
+        messages.push({ role: 'user', content: [{ type: 'text', text: `Extract from the following medical report text:
+${textContent}
+` }] });
+      } else if (imageData && mimeType) {
+        const dataUrl = `data:${mimeType};base64,${imageData}`;
+        messages.push({
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Extract the structured JSON strictly following the schema.' },
+            { type: 'image_url', image_url: { url: dataUrl } }
+          ]
+        });
+      }
+      const openAiModel = (Deno.env.get('OPENAI_MODEL') || 'gpt-4o-mini').trim();
       response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -112,19 +202,10 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: openAiModel,
           temperature: 0.2,
           max_tokens: 1200,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: 'Extract the structured JSON strictly following the schema.' },
-                { type: 'image_url', image_url: { url: dataUrl } }
-              ]
-            }
-          ]
+          messages
         })
       });
     } else {
@@ -133,6 +214,14 @@ serve(async (req) => {
         throw new Error('Neither OPENAI_API_KEY nor GEMINI_API_KEY is configured');
       }
 
+      const parts: unknown[] = [];
+      const promptText = `Analyze this medical report and extract the JSON per the schema in the instructions.`;
+      parts.push({ text: promptText });
+      if (textContent && typeof textContent === 'string') {
+        parts.push({ text: `Report text:\n${textContent}` });
+      } else if (imageData && mimeType) {
+        parts.push({ inline_data: { mime_type: mimeType, data: imageData } });
+      }
       response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
         {
@@ -143,7 +232,7 @@ serve(async (req) => {
               {
                 parts: [
                   {
-                    text: `Analyze this medical report image and extract the following information in JSON format:
+                    text: `Analyze this medical report and extract the following information in JSON format:
                     {
                       "reportType": "type of medical report (e.g., Blood Test, X-Ray, MRI, CT Scan, Ultrasound, ECG, etc.)",
                       "patientName": "patient's name if visible",
@@ -191,7 +280,7 @@ serve(async (req) => {
                     - Return only valid JSON, no additional text
                     - If a section is not present in the report, omit it or set to null`
                   },
-                  { inline_data: { mime_type: mimeType, data: imageData } }
+                  ...parts
                 ]
               }
             ]
@@ -231,9 +320,10 @@ serve(async (req) => {
 
     const reportData: ExtractedReportData = JSON.parse(jsonMatch[0]);
 
-    // Validate and clean the data to a universal schema using nulls for missing
-    const cleanedData: ExtractedReportData = {
-      reportType: reportData.reportType || 'Unknown Report',
+    // Validate against schema, standardize report type, and compute uncertainty
+    const standardizedType = standardizeReportType(reportData.reportType || 'Unknown Report');
+    const candidate: ExtractedReportData = {
+      reportType: standardizedType,
       patientName: reportData.patientName ?? null,
       doctorName: reportData.doctorName ?? null,
       hospitalName: reportData.hospitalName ?? null,
@@ -256,6 +346,37 @@ serve(async (req) => {
       summary: reportData.summary ?? null,
       nextAppointment: reportData.nextAppointment ?? null
     };
+
+    const parsed = UniversalReportSchema.safeParse(candidate);
+    const uncertainFields: string[] = [];
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        if (issue.path && issue.path.length > 0) {
+          uncertainFields.push(issue.path.join('.'));
+        }
+      }
+    }
+    const cleanedData = candidate as ExtractedReportData & { confidence?: Record<string, number>, uncertainFields?: string[] };
+    cleanedData.reportType = standardizedType;
+    const confidence = computeConfidence(cleanedData);
+    (cleanedData as any).confidence = confidence;
+    if (uncertainFields.length > 0) {
+      (cleanedData as any).uncertainFields = Array.from(new Set(uncertainFields));
+    }
+
+    // Minimal logging (no PHI in logs where possible)
+    try {
+      const meta = {
+        hasImage: Boolean(imageData && mimeType),
+        hasText: Boolean(textContent && typeof textContent === 'string'),
+        mimeType: mimeType || null,
+        reportType: cleanedData.reportType,
+        fields: Object.keys(confidence).filter(k => confidence[k] > 0),
+      };
+      console.log('[extract-medical-report] request meta:', JSON.stringify(meta));
+    } catch (_) {
+      // ignore logging errors
+    }
 
     return new Response(
       JSON.stringify(cleanedData),

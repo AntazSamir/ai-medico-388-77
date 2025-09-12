@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import AnalyzerLoader from "@/components/AnalyzerLoader";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Loader2, FileText, X } from "lucide-react";
 import { extractMedicalReportData } from "@/utils/medicalReportExtractor";
@@ -131,6 +132,22 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
               className="hidden"
               required
             />
+
+            {selectedImage && !imagePreview && (
+              <div className="flex items-center justify-between gap-3 p-3 rounded border bg-gray-50">
+                <div className="text-left text-sm">
+                  <div className="font-medium truncate max-w-[220px]">{selectedImage.name}</div>
+                  <div className="text-muted-foreground text-xs">Ready to extract</div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={resetUpload}>Change</Button>
+                  <Button size="sm" className="bg-medical-500 hover:bg-medical-600 text-white" onClick={handleExtractReport}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Extract
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -140,6 +157,15 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
                 alt="Medical report preview" 
                 className="w-full max-h-96 object-contain rounded-lg border"
               />
+              <Button
+                size="sm"
+                onClick={handleExtractReport}
+                className="absolute top-2 right-14 bg-medical-500 hover:bg-medical-600 text-white"
+                disabled={isUploading}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Extract
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -152,11 +178,8 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
             </div>
 
             {isUploading && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Extracting medical data...</span>
-                  <span>{uploadProgress}%</span>
-                </div>
+              <div className="space-y-4">
+                <AnalyzerLoader progress={uploadProgress} />
                 <Progress value={uploadProgress} className="w-full" />
               </div>
             )}

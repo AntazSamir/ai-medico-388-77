@@ -1,26 +1,33 @@
 // Medical report extraction utility using universal schema
 import { UniversalMedicalReport } from "@/types/medicalReport";
 
-export async function extractMedicalReportData(imageFile: File): Promise<UniversalMedicalReport> {
+export async function extractMedicalReportData(input: File | { text: string }): Promise<UniversalMedicalReport> {
   try {
-    // Convert image to base64
-    const base64Image = await fileToBase64(imageFile);
-    
-    // Call the Supabase Edge Function for secure API handling
+    let body: Record<string, unknown> = {};
+    if (input instanceof File) {
+      const base64Image = await fileToBase64(input);
+      body = {
+        imageData: base64Image.split(',')[1],
+        mimeType: input.type
+      };
+    } else if (typeof input === 'object' && typeof input.text === 'string') {
+      body = { textContent: input.text };
+    } else {
+      throw new Error('Unsupported input for extraction');
+    }
+
     const response = await fetch('/functions/v1/extract-medical-report', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        imageData: base64Image.split(',')[1], // Remove data:image/jpeg;base64, prefix
-        mimeType: imageFile.type
-      })
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `API request failed: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({} as any));
+      const details = (errorData && (errorData.details || errorData.error)) || null;
+      throw new Error(details || `API request failed: ${response.status} ${response.statusText}`);
     }
 
     const reportData: UniversalMedicalReport = await response.json();
