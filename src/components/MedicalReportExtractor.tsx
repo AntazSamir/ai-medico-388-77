@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Loader2, FileText, X } from "lucide-react";
 import { extractMedicalReportData } from "@/utils/medicalReportExtractor";
 import { UniversalMedicalReport } from "@/types/medicalReport";
+import { ocrImageToText } from "@/utils/ocr";
+import { extractPdfText } from "@/utils/pdf";
 
 interface MedicalReportExtractorProps {
   onReportExtracted: (reportData: UniversalMedicalReport, imageUrl?: string) => void;
@@ -17,26 +19,43 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [ocrPreview, setOcrPreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Unsupported file type",
-        description: "Images are supported now. PDF/DOC coming soon.",
-        variant: "destructive",
-      });
-      return;
+  const handleFileSelect = async (file: File) => {
+    setOcrPreview("");
+    if (file.type.startsWith('image/')) {
+      setSelectedPdf(null);
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      // Kick off OCR in background to enable text fallback/edit
+      try {
+        const text = await ocrImageToText(file);
+        setOcrPreview(text);
+      } catch (_) {
+        setOcrPreview("");
+      }
+    } else if (file.type === 'application/pdf') {
+      setSelectedImage(null);
+      setImagePreview(null);
+      setSelectedPdf(file);
+      try {
+        const text = await extractPdfText(file);
+        setOcrPreview(text);
+      } catch (e) {
+        setOcrPreview("");
+        toast({ title: 'PDF processing failed', description: e instanceof Error ? e.message : 'Unable to read PDF', variant: 'destructive' });
+      }
+    } else {
+      toast({ title: 'Unsupported file type', description: 'Please upload an image (PNG/JPG/WebP) or PDF.', variant: 'destructive' });
     }
-
-    setSelectedImage(file);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,16 +66,26 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
   };
 
   const handleExtractReport = async () => {
-    if (!selectedImage) return;
+    if (!selectedImage && !selectedPdf && !ocrPreview) return;
 
     setIsUploading(true);
     setUploadProgress(10);
 
     try {
       setUploadProgress(30);
-      
-      // Extract medical report data using Gemini API
-      const reportData = await extractMedicalReportData(selectedImage);
+      let reportData: UniversalMedicalReport;
+      if (ocrPreview && (!selectedImage && selectedPdf)) {
+        // PDF path already produced text
+        reportData = await extractMedicalReportData({ text: ocrPreview });
+      } else if (ocrPreview && selectedImage) {
+        // Prefer OCR text to reduce tokens and errors
+        reportData = await extractMedicalReportData({ text: ocrPreview });
+      } else if (selectedImage) {
+        reportData = await extractMedicalReportData(selectedImage);
+      } else {
+        // As a last resort, try any text gathered
+        reportData = await extractMedicalReportData({ text: ocrPreview });
+      }
       
       setUploadProgress(90);
       
@@ -72,16 +101,15 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
 
       // Reset state
       setSelectedImage(null);
+      setSelectedPdf(null);
       setImagePreview(null);
+      setOcrPreview("");
       setUploadProgress(0);
       
     } catch (error) {
       console.error('Error extracting medical report:', error);
-      toast({
-        title: "Extraction failed",
-        description: error instanceof Error ? error.message : "Failed to extract medical report data",
-        variant: "destructive",
-      });
+      const message = error instanceof Error ? error.message : "Failed to extract medical report data";
+      toast({ title: "Extraction failed", description: message, variant: "destructive" });
     } finally {
       setIsUploading(false);
     }
@@ -114,29 +142,29 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
-              <p className="text-lg font-medium mb-2">Drop medical report image here</p>
+              <p className="text-lg font-medium mb-2">Drop medical report file here</p>
               <p className="text-sm text-muted-foreground mb-4">
                 or click to browse files
               </p>
               <Button variant="outline" size="sm">
                 <Camera className="h-4 w-4 mr-2" />
-                Choose Image
+                Choose File
               </Button>
             </div>
 
             <input
               ref={fileInputRef}
               type="file"
-              accept=".png,.jpg,.jpeg,.webp,.pdf,.doc,.docx"
+              accept=".png,.jpg,.jpeg,.webp,.pdf"
               onChange={handleFileInput}
               className="hidden"
               required
             />
 
-            {selectedImage && !imagePreview && (
+            {(selectedImage || selectedPdf) && !imagePreview && (
               <div className="flex items-center justify-between gap-3 p-3 rounded border bg-gray-50">
                 <div className="text-left text-sm">
-                  <div className="font-medium truncate max-w-[220px]">{selectedImage.name}</div>
+                  <div className="font-medium truncate max-w-[220px]">{(selectedImage || selectedPdf)!.name}</div>
                   <div className="text-muted-foreground text-xs">Ready to extract</div>
                 </div>
                 <div className="flex gap-2">
@@ -144,6 +172,22 @@ export default function MedicalReportExtractor({ onReportExtracted, onCancel }: 
                   <Button size="sm" className="bg-medical-500 hover:bg-medical-600 text-white" onClick={handleExtractReport}>
                     <FileText className="h-4 w-4 mr-2" />
                     Extract
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {ocrPreview && (
+              <div className="text-left space-y-2">
+                <p className="text-sm font-medium">OCR text preview (editable)</p>
+                <textarea
+                  className="w-full h-32 p-2 border rounded text-sm"
+                  value={ocrPreview}
+                  onChange={(e) => setOcrPreview(e.target.value)}
+                />
+                <div className="flex justify-end">
+                  <Button size="sm" onClick={handleExtractReport} className="bg-medical-500 hover:bg-medical-600 text-white">
+                    <FileText className="h-4 w-4 mr-2" /> Use Text For Extraction
                   </Button>
                 </div>
               </div>
